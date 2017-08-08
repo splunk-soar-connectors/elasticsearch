@@ -24,8 +24,6 @@ from elasticsearch_consts import *
 import requests
 import json
 
-requests.packages.urllib3.disable_warnings()
-
 
 class ElasticsearchConnector(BaseConnector):
 
