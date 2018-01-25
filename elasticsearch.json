@@ -13,7 +13,7 @@
     "product_version_regex": ".*",
     "min_phantom_version": "3.0.190",
     "logo": "elastic.png",
-    "license": "Copyright (c) Phantom Cyber Corporation 2016",
+    "license": "Copyright (c) Phantom Cyber Corporation, 2016-2018",
     "configuration": {
         "url": {
             "data_type": "string",
