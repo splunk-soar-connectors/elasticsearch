@@ -28,8 +28,6 @@ import sys
 
 import elasticsearch_parser
 
-requests.packages.urllib3.disable_warnings()
-
 MODULE_NAME = 'custom_parser'
 HANDLER_NAME = 'handle_request'
 
