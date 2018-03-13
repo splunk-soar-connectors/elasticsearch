@@ -1,7 +1,7 @@
 {
     "appid": "fde8b9da-d38c-45c2-832a-1e1c543ed287",
     "name": "Elasticsearch",
-    "description": "This app integrates with an Elasticsearch installation to implement investigative actions",
+    "description": "This app integrates with an Elasticsearch installation to implement ingestion and investigative actions",
     "publisher": "Phantom",
     "type": "siem",
     "main_module": "elasticsearch_connector.pyc",
@@ -11,7 +11,7 @@
     "product_name": "Elasticsearch",
     "product_vendor": "Elastic",
     "product_version_regex": ".*",
-    "min_phantom_version": "3.0.190",
+    "min_phantom_version": "3.0.284",
     "logo": "logo_elastic.svg",
     "logo_dark": "logo_elastic_dark.svg",
     "license": "Copyright (c) Phantom Cyber Corporation, 2016-2018",
@@ -40,6 +40,36 @@
             "order": 3,
             "description": "Password",
             "required": false
+        },
+        "ingest_index": {
+            "description": "Ingestion index",
+            "data_type": "string",
+            "required": false,
+            "order": 4
+        },
+        "ingest_type": {
+            "description": "Ingestion type",
+            "data_type": "string",
+            "required": false,
+            "order": 5
+        },
+        "ingest_routing": {
+            "description": "Ingestion routing",
+            "data_type": "string",
+            "required": false,
+            "order": 6
+        },
+        "ingest_query": {
+            "description": "Ingestion query",
+            "data_type": "string",
+            "required": false,
+            "order": 7
+        },
+        "ingest_parser": {
+            "description": "Custom Elasticsearch parser",
+            "data_type": "file",
+            "extensions": ".py",
+            "order": 8
         }
     },
     "actions": [
@@ -127,7 +157,7 @@
                     "description": "Type to query on",
                     "data_type": "string",
                     "order": 1,
-                    "required": true,
+                    "required": false,
                     "contains": [
                         "elasticsearch type"
                     ],
@@ -260,6 +290,43 @@
                     "data_type": "numeric"
                 }
             ],
+            "versions": "EQ(*)"
+        },
+        {
+            "action": "on poll",
+            "identifier": "on_poll",
+            "description": "Run a query in elasticsearch and ingest the results",
+            "verbose": "This will run a query in elasticsearch using the <b>index</b>, <b>type</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Phantom in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href=\"https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html\">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. If a custom parsing script is not provided, the <a href=\"/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py\">default parsing script</a> is used:<br><pre class=\"shell\"><code>def ingest_parser(data):\n    results = []\n    if not isinstance(data, dict):\n        return results\n\n    hits = data.get('hits', {}).get('hits', [])\n    for hit in hits:\n        container = {}\n        artifacts = []\n\n        # anything printed to stdout will be added to the phantom debug logs\n        print 'Found hit {}. Building container'.format(hit['_id'])\n\n        container['run_automation'] = False\n        container['source_data_identifier'] = hit['_id']\n        container['name'] = 'Elasticsearch: {} {} {}'.format(hit['_index'],\n                                                             hit['_type'],\n                                                             hit['_id'])\n\n        artifacts.append({\n            # always True since there is only one\n            'run_automation': True,\n            'label': 'event',\n            'name': 'elasticsearch event',\n            'cef': hit.get('_source'),\n            'source_data_identifier': hit['_id']\n        })\n\n        results.append({\n            'container': container,\n            'artifacts': artifacts\n        })\n\n    return results\n</code></pre>",
+            "type": "ingest",
+            "read_only": true,
+            "parameters": {
+                "container_id": {
+                    "description": "Limit ingestion to these container IDs",
+                    "data_type": "string",
+                    "required": false
+                },
+                "start_time": {
+                    "description": "Start of time range in epoch time (default: 10 days ago)",
+                    "data_type": "numeric",
+                    "required": false
+                },
+                "end_time": {
+                    "description": "End of time range in epoch time (default: now)",
+                    "data_type": "numeric",
+                    "required": false
+                },
+                "container_count": {
+                    "description": "Maximum number of containers to create",
+                    "data_type": "numeric",
+                    "required": false
+                },
+                "artifact_count": {
+                    "description": "Maximum number of artifacts to create per container.",
+                    "data_type": "numeric",
+                    "required": false
+                }
+            },
+            "output": [],
             "versions": "EQ(*)"
         }
     ]
