@@ -1,14 +1,10 @@
 # --
 # File: elasticsearch/elasticsearch_consts.py
 #
-# Copyright (c) Phantom Cyber Corporation, 2016-2018
+# Copyright (c) 2016-2018 Splunk Inc.
 #
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber.
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 #
 # --
 
@@ -20,8 +16,8 @@ ELASTICSEARCH_JSON_ROUTING = "routing"
 ELASTICSEARCH_JSON_TOTAL_HITS = "total_hits"
 ELASTICSEARCH_JSON_TIMED_OUT = "timed_out"
 
-ELASTICSEARCH_ERR_CONNECTIVITY_TEST = "Connectivity test failed"
-ELASTICSEARCH_SUCC_CONNECTIVITY_TEST = "Connectivity test passed"
+ELASTICSEARCH_ERR_CONNECTIVITY_TEST = "Test Connectivity Failed"
+ELASTICSEARCH_SUCC_CONNECTIVITY_TEST = "Test Connectivity Passed"
 ELASTICSEARCH_ERR_SERVER_CONNECTION = "Connection failed"
 ELASTICSEARCH_ERR_FROM_SERVER = "API failed, Status code: {status}, Detail: {detail}"
 ELASTICSEARCH_MSG_CLUSTER_HEALTH = "Querying cluster health to check connectivity"
