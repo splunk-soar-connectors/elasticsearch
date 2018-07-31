@@ -1,14 +1,10 @@
 # --
 # File: elasticsearch/elasticsearch_connector.py
 #
-# Copyright (c) Phantom Cyber Corporation, 2016-2018
+# Copyright (c) 2016-2018 Splunk Inc.
 #
-# This unpublished material is proprietary to Phantom Cyber.
-# All rights reserved. The methods and
-# techniques described herein are considered trade secrets
-# and/or confidential. Reproduction or distribution, in whole
-# or in part, is forbidden except by express written permission
-# of Phantom Cyber.
+# SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
+# without a valid written license from Splunk Inc. is PROHIBITED.
 #
 # --
 """ Code that implements calls made to the elasticsearch systems device"""
@@ -23,6 +19,21 @@ from elasticsearch_consts import *
 
 import requests
 import json
+import imp
+import sys
+
+import elasticsearch_parser
+
+MODULE_NAME = 'custom_parser'
+HANDLER_NAME = 'handle_request'
+
+
+class PhantomDebugWriter():
+    def __init__(self, this):
+        self.this = this
+
+    def write(self, message):
+        self.this.debug_print(message)
 
 
 class ElasticsearchConnector(BaseConnector):
@@ -30,6 +41,8 @@ class ElasticsearchConnector(BaseConnector):
     # actions supported by this script
     ACTION_ID_RUN_QUERY = "run_query"
     ACTION_ID_GET_CONFIG = "get_config"
+    REQUIRED_INGESTION_FIELDS = ["ingest_index",
+                                 "ingest_query"]
 
     def __init__(self):
         """ """
@@ -58,7 +71,10 @@ class ElasticsearchConnector(BaseConnector):
         self._host = self._base_url[self._base_url.find('//') + 2:]
 
         # The headers, initialize them here once and use them for all other REST calls
-        self._headers = {'Accept': 'application/json'}
+        self._headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
 
         self._username = config.get(phantom.APP_JSON_USERNAME)
         self._password = config.get(phantom.APP_JSON_PASSWORD)
@@ -68,7 +84,7 @@ class ElasticsearchConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _make_rest_call(self, endpoint, action_result, headers={}, params=None, data=None, method="get"):
+    def _make_rest_call(self, endpoint, action_result, headers={}, params=None, data=None, method='get'):
         """ Function that makes the REST call to the device, generic function that can be called from various action handlers"""
 
         # Get the config
@@ -76,9 +92,6 @@ class ElasticsearchConnector(BaseConnector):
 
         # Create the headers
         headers.update(self._headers)
-
-        if (method in ['put', 'post']):
-            headers.update({'Content-Type': 'application/json'})
 
         resp_json = None
 
@@ -191,7 +204,8 @@ class ElasticsearchConnector(BaseConnector):
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, "Unable to load query json. Error: {0}".format(str(e)))
 
-        endpoint = "/{0}/{1}/_search".format(param[ELASTICSEARCH_JSON_INDEX], param[ELASTICSEARCH_JSON_TYPE])
+        es_type = param.get(ELASTICSEARCH_JSON_TYPE, '_doc')
+        endpoint = "/{0}/{1}/_search".format(param[ELASTICSEARCH_JSON_INDEX], es_type)
 
         routing = param.get(ELASTICSEARCH_JSON_ROUTING)
 
@@ -204,7 +218,7 @@ class ElasticsearchConnector(BaseConnector):
         self.save_progress(phantom.APP_PROG_CONNECTING_TO_ELLIPSES, self._host)
 
         # Make the rest endpoint call
-        ret_val, response = self._make_rest_call(endpoint, action_result, data=query_json, params=params)
+        ret_val, response = self._make_rest_call(endpoint, action_result, data=query_json, params=params, method='post')
 
         # Process errors
         if (phantom.is_fail(ret_val)):
@@ -243,9 +257,14 @@ class ElasticsearchConnector(BaseConnector):
 
         for index in indices:
 
+            data = {'index': index}
             types = response[index]['mappings'].keys()
+            keep_types = True
+            if len(types) == 1 and '_doc' in types:
+                keep_types = False
 
-            data = {'index': index, 'types': types}
+            if keep_types:
+                data['types'] = types
 
             action_result.add_data(data)
 
@@ -253,6 +272,74 @@ class ElasticsearchConnector(BaseConnector):
 
         # Set the Status
         return action_result.set_status(phantom.APP_SUCCESS)
+
+    def _save_container(self, container_dict):
+
+        config = self.get_config()
+        container = container_dict.get('container')
+        container['label'] = config.get('ingest', {}).get('container_label')
+        container['artifacts'] = container_dict.get('artifacts')
+
+        return self.save_container(container)
+
+    def _on_poll(self, param):
+        container_count = param.get('container_count', 0)
+
+        config = self.get_config()
+        if not all(x in config for x in self.REQUIRED_INGESTION_FIELDS):
+            return self.set_status(phantom.APP_ERROR,
+                                    'Ingestion requires a configured '
+                                    'index and query.')
+
+        query_params = {
+            ELASTICSEARCH_JSON_INDEX: config['ingest_index'],
+            ELASTICSEARCH_JSON_QUERY: config['ingest_query']
+        }
+        if 'ingest_type' in config:
+            query_params[ELASTICSEARCH_JSON_TYPE] = config['ingest_type']
+        if 'ingest_routing' in config:
+            query_params[ELASTICSEARCH_JSON_ROUTING] = config['routing']
+
+        ret_val = self._run_query(query_params)
+        if phantom.is_fail(ret_val):
+            return ret_val
+
+        action_results = self.get_action_results()
+        parser = config.get('ingest_parser')
+        for action_result in action_results:
+            for data in action_result.get_data():
+                ret_dict_list = None
+                saved_stdout = sys.stdout
+                debug_out = PhantomDebugWriter(self)
+                if parser:
+                    parser_name = config['ingest_parser__filename']
+                    self.save_progress("Using specified parser: {0}".format(parser_name))
+
+                    ingest_parser = imp.new_module("custom_parser")  # noqa
+                    try:
+                        sys.stdout = debug_out
+                        exec parser in ingest_parser.__dict__
+                        ret_dict_list = ingest_parser.ingest_parser(data)
+                    except Exception as e:
+                        return action_result.set_status(phantom.APP_ERROR, "Unable to execute ingest parser: {0}".format(str(e)))
+                    finally:
+                        sys.stdout = saved_stdout
+                else:
+                    sys.stdout = debug_out
+                    ret_dict_list = elasticsearch_parser.ingest_parser(data)
+                    sys.stdout = saved_stdout
+
+                if not ret_dict_list:
+                    continue
+
+                if (container_count and self.is_poll_now() and
+                        container_count > len(ret_dict_list)):
+                    ret_dict_list = ret_dict_list[:container_count]
+
+                for ret_dict in ret_dict_list:
+                    self._save_container(ret_dict)
+
+        return self.set_status(phantom.APP_SUCCESS)
 
     def handle_action(self, param):
         """Function that handles all the actions"""
@@ -270,6 +357,8 @@ class ElasticsearchConnector(BaseConnector):
             ret_val = self._get_config(param)
         elif (action == phantom.ACTION_ID_TEST_ASSET_CONNECTIVITY):
             ret_val = self._test_connectivity(param)
+        elif action == phantom.ACTION_ID_INGEST_ON_POLL:
+            ret_val = self._on_poll(param)
 
         return ret_val
 
