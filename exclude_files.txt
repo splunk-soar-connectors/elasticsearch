@@ -1,5 +1,7 @@
+docker-compose.yml
+Makefile
 __init__.py
-elasticsearch_connector.py
 elasticsearch_consts.py
-elasticsearch_view.py
 .git*
+elasticsearch_connector.py
+elasticsearch_view.py
