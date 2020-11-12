@@ -5,4 +5,5 @@ elasticsearch_consts.py
 .git*
 .gitlab-ci.yml
 elasticsearch_connector.py
+whitesource-results
 elasticsearch_view.py
