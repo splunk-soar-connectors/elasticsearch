@@ -20,7 +20,6 @@ from elasticsearch_consts import *
 import requests
 import json
 import imp
-import sys
 
 import elasticsearch_parser
 
@@ -64,7 +63,7 @@ class ElasticsearchConnector(BaseConnector):
 
         # Get the Base URL from the asset config and so some cleanup
         self._base_url = config[ELASTICSEARCH_JSON_DEVICE_URL]
-        if (self._base_url.endswith('/')):
+        if self._base_url.endswith('/'):
             self._base_url = self._base_url[:-1]
 
         # The host member extacts the host from the URL, is used in creating status messages
@@ -79,13 +78,14 @@ class ElasticsearchConnector(BaseConnector):
         self._username = config.get(phantom.APP_JSON_USERNAME)
         self._password = config.get(phantom.APP_JSON_PASSWORD)
 
-        if (self._username and self._password):
+        if self._username and self._password:
             self._auth_method = True
 
         return phantom.APP_SUCCESS
 
     def _make_rest_call(self, endpoint, action_result, headers={}, params=None, data=None, method='get'):
-        """ Function that makes the REST call to the device, generic function that can be called from various action handlers"""
+        """ Function that makes the REST call to the device, generic function that can be called from various action
+        handlers """
 
         # Get the config
         config = self.get_config()
@@ -99,10 +99,10 @@ class ElasticsearchConnector(BaseConnector):
         request_func = getattr(requests, method)
 
         # handle the error in case the caller specified a non-existant method
-        if (not request_func):
+        if not request_func:
             return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERR_API_UNSUPPORTED_METHOD, method=method)
 
-        if (self._auth_method):
+        if self._auth_method:
             self.save_progress('Using authentication')
         else:
             self.save_progress('Not using any authentication, since either the password or username not specified')
@@ -116,10 +116,10 @@ class ElasticsearchConnector(BaseConnector):
                     verify=config[phantom.APP_JSON_VERIFY],  # should cert verification be carried out?
                     params=params)  # uri parameters if any
         except Exception as e:
-            return (action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERR_SERVER_CONNECTION, e), resp_json)
+            return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERR_SERVER_CONNECTION, e), resp_json
 
         if hasattr(action_result, 'add_debug_data'):
-            if (r is not None):
+            if r is not None:
                 action_result.add_debug_data({'r_text': r.text})
                 action_result.add_debug_data({'r_headers': r.headers})
                 action_result.add_debug_data({'r_status_code': r.status_code})
@@ -132,7 +132,7 @@ class ElasticsearchConnector(BaseConnector):
         except Exception as e:
             # r.text is guaranteed to be NON None, it will be empty, but not None
             msg_string = ELASTICSEARCH_ERR_JSON_PARSE.format(raw_text=r.text.replace('{', ' ').replace('}', ' '))
-            return (action_result.set_status(phantom.APP_ERROR, msg_string, e), resp_json)
+            return action_result.set_status(phantom.APP_ERROR, msg_string, e), resp_json
 
         # Handle any special HTTP error codes here, many devices return an HTTP error code like 204. The requests module treats these as error,
         # so handle them here before anything else, uncomment the following lines in such cases
@@ -140,16 +140,16 @@ class ElasticsearchConnector(BaseConnector):
         #     return (phantom.APP_SUCCESS, resp_json)
 
         # Handle/process any errors that we get back from the device
-        if (200 <= r.status_code <= 399):
+        if 200 <= r.status_code <= 399:
             # Success
-            return (phantom.APP_SUCCESS, resp_json)
+            return phantom.APP_SUCCESS, resp_json
 
         # Failure
         action_result.add_data(resp_json)
 
         details = json.dumps(resp_json).replace('{', '').replace('}', '')
 
-        return (action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERR_FROM_SERVER.format(status=r.status_code, detail=details)), resp_json)
+        return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERR_FROM_SERVER.format(status=r.status_code, detail=details)), resp_json
 
     def _test_connectivity(self, param):
         """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
@@ -221,7 +221,7 @@ class ElasticsearchConnector(BaseConnector):
         ret_val, response = self._make_rest_call(endpoint, action_result, data=query_json, params=params, method='post')
 
         # Process errors
-        if (phantom.is_fail(ret_val)):
+        if phantom.is_fail(ret_val):
 
             # Dump error messages in the log
             self.debug_print(action_result.get_message())
@@ -253,12 +253,12 @@ class ElasticsearchConnector(BaseConnector):
             self.debug_print(action_result.get_message())
             return action_result.get_status()
 
-        indices = response.keys()
+        indices = list(response.keys())
 
         for index in indices:
 
             data = {'index': index}
-            types = response[index]['mappings'].keys()
+            types = list(response[index]['mappings'].keys())
             keep_types = True
             if len(types) == 1 and '_doc' in types:
                 keep_types = False
@@ -318,7 +318,7 @@ class ElasticsearchConnector(BaseConnector):
                     ingest_parser = imp.new_module("custom_parser")  # noqa
                     try:
                         sys.stdout = debug_out
-                        exec parser in ingest_parser.__dict__
+                        exec(parser, ingest_parser.__dict__)
                         ret_dict_list = ingest_parser.ingest_parser(data)
                     except Exception as e:
                         return action_result.set_status(phantom.APP_ERROR, "Unable to execute ingest parser: {0}".format(str(e)))
@@ -332,8 +332,7 @@ class ElasticsearchConnector(BaseConnector):
                 if not ret_dict_list:
                     continue
 
-                if (container_count and self.is_poll_now() and
-                        container_count > len(ret_dict_list)):
+                if container_count and self.is_poll_now() and container_count > len(ret_dict_list):
                     ret_dict_list = ret_dict_list[:container_count]
 
                 for ret_dict in ret_dict_list:
@@ -351,11 +350,11 @@ class ElasticsearchConnector(BaseConnector):
         ret_val = phantom.APP_SUCCESS
 
         # Bunch if if..elif to process actions
-        if (action == self.ACTION_ID_RUN_QUERY):
+        if action == self.ACTION_ID_RUN_QUERY:
             ret_val = self._run_query(param)
-        elif (action == self.ACTION_ID_GET_CONFIG):
+        elif action == self.ACTION_ID_GET_CONFIG:
             ret_val = self._get_config(param)
-        elif (action == phantom.ACTION_ID_TEST_ASSET_CONNECTIVITY):
+        elif action == phantom.ACTION_ID_TEST_ASSET_CONNECTIVITY:
             ret_val = self._test_connectivity(param)
         elif action == phantom.ACTION_ID_INGEST_ON_POLL:
             ret_val = self._on_poll(param)
@@ -394,6 +393,6 @@ if __name__ == '__main__':
         ret_val = connector._handle_action(json.dumps(in_json), None)
 
         # Dump the return value
-        print ret_val
+        print(ret_val)
 
     exit(0)
