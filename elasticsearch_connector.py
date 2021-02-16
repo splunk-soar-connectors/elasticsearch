@@ -1,7 +1,5 @@
-# --
-# File: elasticsearch/elasticsearch_connector.py
-#
-# Copyright (c) 2016-2018 Splunk Inc.
+# File: elasticsearch_connector.py
+# Copyright (c) 2016-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -20,6 +18,7 @@ from elasticsearch_consts import *
 import requests
 import json
 import imp
+import sys
 
 import elasticsearch_parser
 
@@ -51,6 +50,7 @@ class ElasticsearchConnector(BaseConnector):
         self._headers = None
         self._auth_method = None
         self._username = None
+        self._password = None
         self._key = None
 
         # Call the BaseConnectors init first
@@ -66,7 +66,7 @@ class ElasticsearchConnector(BaseConnector):
         if self._base_url.endswith('/'):
             self._base_url = self._base_url[:-1]
 
-        # The host member extacts the host from the URL, is used in creating status messages
+        # The host member extracts the host from the URL, is used in creating status messages
         self._host = self._base_url[self._base_url.find('//') + 2:]
 
         # The headers, initialize them here once and use them for all other REST calls
@@ -110,11 +110,12 @@ class ElasticsearchConnector(BaseConnector):
         # Make the call
         try:
             r = request_func(self._base_url + endpoint,  # The complete url is made up of the base_url, and the endpoint
-                    auth=(self._username, self._password) if self._auth_method else None,
-                    data=json.dumps(data) if data else None,  # the data, converted to json string format if present, else just set to None
-                    headers=headers,  # The headers to send in the HTTP call
-                    verify=config[phantom.APP_JSON_VERIFY],  # should cert verification be carried out?
-                    params=params)  # uri parameters if any
+                             auth=(self._username, self._password) if self._auth_method else None,
+                             data=json.dumps(data) if data else None,
+                             # the data, converted to json string format if present, else just set to None
+                             headers=headers,  # The headers to send in the HTTP call
+                             verify=config[phantom.APP_JSON_VERIFY],  # should cert verification be carried out?
+                             params=params)  # uri parameters if any
         except Exception as e:
             return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERR_SERVER_CONNECTION, e), resp_json
 
@@ -126,7 +127,8 @@ class ElasticsearchConnector(BaseConnector):
             else:
                 action_result.add_debug_data({'r_text': 'r is None'})
 
-        # Try a json parse, since most REST API's give back the data in json, if the device does not return JSONs, then need to implement parsing them some other manner
+        # Try a json parse, since most REST API's give back the data in json, if the device does not return JSONs,
+        # then need to implement parsing them some other manner
         try:
             resp_json = r.json()
         except Exception as e:
@@ -149,7 +151,8 @@ class ElasticsearchConnector(BaseConnector):
 
         details = json.dumps(resp_json).replace('{', '').replace('}', '')
 
-        return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERR_FROM_SERVER.format(status=r.status_code, detail=details)), resp_json
+        return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERR_FROM_SERVER.format(status=r.status_code,
+                                                                                                detail=details)), resp_json
 
     def _test_connectivity(self, param):
         """ Function that handles the test connectivity action, it is much simpler than other action handlers."""
@@ -170,8 +173,7 @@ class ElasticsearchConnector(BaseConnector):
         ret_val, response = self._make_rest_call(endpoint, action_result)
 
         # Process errors
-        if (phantom.is_fail(ret_val)):
-
+        if phantom.is_fail(ret_val):
             # Dump error messages in the log
             self.debug_print(action_result.get_message())
 
@@ -211,7 +213,7 @@ class ElasticsearchConnector(BaseConnector):
 
         params = None
 
-        if (routing):
+        if routing:
             params = {'routing': routing}
 
         # Connectivity
@@ -247,8 +249,7 @@ class ElasticsearchConnector(BaseConnector):
         ret_val, response = self._make_rest_call('/_mapping', action_result)
 
         # Process errors
-        if (phantom.is_fail(ret_val)):
-
+        if phantom.is_fail(ret_val):
             # Dump error messages in the log
             self.debug_print(action_result.get_message())
             return action_result.get_status()
@@ -287,9 +288,7 @@ class ElasticsearchConnector(BaseConnector):
 
         config = self.get_config()
         if not all(x in config for x in self.REQUIRED_INGESTION_FIELDS):
-            return self.set_status(phantom.APP_ERROR,
-                                    'Ingestion requires a configured '
-                                    'index and query.')
+            return self.set_status(phantom.APP_ERROR, 'Ingestion requires a configured index and query.')
 
         query_params = {
             ELASTICSEARCH_JSON_INDEX: config['ingest_index'],
@@ -321,7 +320,8 @@ class ElasticsearchConnector(BaseConnector):
                         exec(parser, ingest_parser.__dict__)
                         ret_dict_list = ingest_parser.ingest_parser(data)
                     except Exception as e:
-                        return action_result.set_status(phantom.APP_ERROR, "Unable to execute ingest parser: {0}".format(str(e)))
+                        return action_result.set_status(phantom.APP_ERROR,
+                                                        "Unable to execute ingest parser: {0}".format(str(e)))
                     finally:
                         sys.stdout = saved_stdout
                 else:
@@ -369,7 +369,6 @@ if __name__ == '__main__':
         """
 
     # Imports
-    import sys
     import pudb
 
     # Breakpoint at runtime
