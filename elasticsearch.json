@@ -4,7 +4,7 @@
     "description": "This app integrates with an Elasticsearch installation to implement ingestion and investigative actions",
     "publisher": "Splunk",
     "type": "siem",
-    "main_module": "elasticsearch_connector.pyc",
+    "main_module": "elasticsearch_connector.py",
     "app_version": "2.0.0",
     "utctime_updated": "2018-12-07T01:33:41.000000Z",
     "package_name": "phantom_elasticsearch",
