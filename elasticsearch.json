@@ -16,6 +16,9 @@
     "logo": "logo_elastic.svg",
     "logo_dark": "logo_elastic_dark.svg",
     "license": "Copyright (c) 2016-2021 Splunk Inc.",
+    "latest_tested_versions": [
+        "Kibana UI version 5.2.2, February 16 2021"
+    ],
     "configuration": {
         "url": {
             "data_type": "string",
@@ -221,7 +224,7 @@
                         "elasticsearch query"
                     ],
                     "example_values": [
-                        "\"{ \"query\": {\"match_all\": {}}}\""
+                        "{ \"query\": {\"match_all\": {}}}"
                     ]
                 },
                 {
