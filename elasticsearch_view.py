@@ -1,7 +1,5 @@
-# --
 # File: elasticsearch_view.py
-#
-# Copyright (c) 2016-2018 Splunk Inc.
+# Copyright (c) 2016-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -18,10 +16,10 @@ def get_ctx_result(result):
 
     ctx_result['param'] = param
 
-    if (data):
+    if data:
         ctx_result['data'] = data
 
-    if (summary):
+    if summary:
         ctx_result['summary'] = summary
 
     return ctx_result
@@ -34,7 +32,7 @@ def display_config(provides, all_app_runs, context):
         for result in action_results:
 
             ctx_result = get_ctx_result(result)
-            if (not ctx_result):
+            if not ctx_result:
                 continue
             results.append(ctx_result)
     # print context
