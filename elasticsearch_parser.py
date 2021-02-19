@@ -1,7 +1,5 @@
-# --
 # File: elasticsearch_parser.py
-#
-# Copyright (c) 2017-2018 Splunk Inc.
+# Copyright (c) 2016-2021 Splunk Inc.
 #
 # SPLUNK CONFIDENTIAL - Use or disclosure of this material in whole or in part
 # without a valid written license from Splunk Inc. is PROHIBITED.
@@ -20,7 +18,7 @@ def ingest_parser(data):
         artifacts = []
 
         # anything printed to stdout will be added to the phantom debug logs
-        print "Found hit {}. Building container".format(hit['_id'])
+        print("Found hit {}. Building container".format(hit['_id']))
 
         container['run_automation'] = False
         container['source_data_identifier'] = hit['_id']
