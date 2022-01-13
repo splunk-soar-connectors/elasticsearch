@@ -1,6 +1,6 @@
 # File: elasticsearch_connector.py
 #
-# Copyright (c) 2016-2021 Splunk Inc.
+# Copyright (c) 2016-2022 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,20 +14,17 @@
 # and limitations under the License.
 """ Code that implements calls made to the elasticsearch systems device"""
 
-# Phantom imports
-import phantom.app as phantom
-from phantom.base_connector import BaseConnector
-from phantom.action_result import ActionResult
-
-# THIS Connector imports
-from elasticsearch_consts import *
-
-import requests
-import json
 import imp
+import json
 import sys
 
+import phantom.app as phantom
+import requests
+from phantom.action_result import ActionResult
+from phantom.base_connector import BaseConnector
+
 import elasticsearch_parser
+from elasticsearch_consts import *
 
 MODULE_NAME = 'custom_parser'
 HANDLER_NAME = 'handle_request'
