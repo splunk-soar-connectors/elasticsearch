@@ -87,9 +87,12 @@ class ElasticsearchConnector(BaseConnector):
 
         return phantom.APP_SUCCESS
 
-    def _make_rest_call(self, endpoint, action_result, headers={}, params=None, data=None, method='get'):
+    def _make_rest_call(self, endpoint, action_result, headers=None, params=None, data=None, method='get'):
         """ Function that makes the REST call to the device, generic function that can be called from various action
         handlers """
+
+        if not headers:
+            headers = {}
 
         # Get the config
         config = self.get_config()
@@ -398,4 +401,4 @@ if __name__ == '__main__':
         # Dump the return value
         print(ret_val)
 
-    exit(0)
+    sys.exit(0)
