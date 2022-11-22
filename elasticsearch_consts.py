@@ -20,11 +20,18 @@ ELASTICSEARCH_JSON_ROUTING = "routing"
 ELASTICSEARCH_JSON_TOTAL_HITS = "total_hits"
 ELASTICSEARCH_JSON_TIMED_OUT = "timed_out"
 
-ELASTICSEARCH_ERR_CONNECTIVITY_TEST = "Test Connectivity Failed"
+# endpoints
+ELASTICSEARCH_CLUSTER_HEALTH = '/_cluster/health'
+ELASTICSEARCH_GET_INDEXES = '/_cat/indices'
+ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX = '/{0}/_search'
+ELASTICSEARCH_QUERY_SEARCH_WITHOUT_INDEX = '/_search'
+
+ELASTICSEARCH_ERROR_CONNECTIVITY_TEST = "Test Connectivity Failed"
 ELASTICSEARCH_SUCC_CONNECTIVITY_TEST = "Test Connectivity Passed"
-ELASTICSEARCH_ERR_SERVER_CONNECTION = "Connection failed"
-ELASTICSEARCH_ERR_FROM_SERVER = "API failed, Status code: {status}, Detail: {detail}"
+ELASTICSEARCH_ERROR_SERVER_CONNECTION = "Connection failed"
+ELASTICSEARCH_ERROR_FROM_SERVER = "API failed, Status code: {status}, Detail: {detail}"
 ELASTICSEARCH_MSG_CLUSTER_HEALTH = "Querying cluster health to check connectivity"
-ELASTICSEARCH_ERR_API_UNSUPPORTED_METHOD = "Unsupported method"
+ELASTICSEARCH_ERROR_API_UNSUPPORTED_METHOD = "Unsupported method"
 ELASTICSEARCH_USING_BASE_URL = "Using url: {base_url}"
-ELASTICSEARCH_ERR_JSON_PARSE = "Unable to parse reply as a Json, raw string reply: '{raw_text}'"
+ELASTICSEARCH_ERROR_JSON_PARSE = "Unable to parse reply as a Json, raw string reply: '{raw_text}'"
+ELASTICSEARCH_ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"

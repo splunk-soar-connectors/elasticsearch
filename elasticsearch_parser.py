@@ -27,8 +27,7 @@ def ingest_parser(data):
 
         container['run_automation'] = False
         container['source_data_identifier'] = hit['_id']
-        container['name'] = 'Elasticsearch: {} {} {}'.format(hit['_index'],
-                                                             hit['_type'],
+        container['name'] = 'Elasticsearch: {} {}'.format(hit['_index'],
                                                              hit['_id'])
 
         artifacts.append({
