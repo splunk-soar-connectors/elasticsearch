@@ -51,18 +51,18 @@
         "ingest_routing": {
             "description": "Ingestion routing",
             "data_type": "string",
-            "order": 6
+            "order": 5
         },
         "ingest_query": {
             "description": "Ingestion query",
             "data_type": "string",
-            "order": 7
+            "order": 6
         },
         "ingest_parser": {
             "description": "Custom Elasticsearch parser",
             "data_type": "file",
             "extensions": ".py",
-            "order": 8
+            "order": 7
         }
     },
     "actions": [
