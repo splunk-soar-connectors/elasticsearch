@@ -87,7 +87,6 @@
                 "type": "custom",
                 "width": 10,
                 "height": 5,
-                "title": "Get Config",
                 "view": "elasticsearch_view.display_config"
             },
             "output": [
@@ -110,7 +109,9 @@
                     "data_path": "action_result.data.*.health",
                     "data_type": "string",
                     "example_values": [
-                        "green"
+                        "green",
+                        "red",
+                        "yellow"
                     ]
                 },
                 {
@@ -172,7 +173,7 @@
         {
             "action": "run query",
             "description": "Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string",
-            "verbose": "The action executes the query on an Elasticsearch installation by doing a POST on the REST endpoint '<b>base_url</b>/<b>index</b>/_search' with the input <b>query</b> as the data. Please see the Elasticseach website for query format and documentation.<br>The <b>routing</b> parameter is appended as a parameter in the REST call if specified.<br>As an e.g. the following query returns only the <i>id</i> and <i>name</i> of all the items in an <b>index</b> of the specified <b>type</b><br>{ \"query\": { \"match_all\": {} }, \"_source\": [\"id\", \"name\"]}.",
+            "verbose": "The action executes the query on an Elasticsearch installation by doing a POST on the REST endpoint '<b>base_url</b>/<b>index(optional)</b>/_search' with the input <b>query</b> as the data, if specified. Please see the Elasticseach website for query format and documentation.<br>The <b>routing</b> parameter is appended as a parameter in the REST call if specified.<br>As an e.g. the following query returns only the <i>id</i> and <i>name</i> of all the items from the given <b>index</b><br>{ \"query\": { \"match_all\": {} }, \"_source\": [\"id\", \"name\"]}.",
             "type": "investigate",
             "identifier": "run_query",
             "read_only": true,
@@ -189,12 +190,12 @@
                 "routing": {
                     "description": "Shards to query on (routing value)",
                     "data_type": "string",
-                    "order": 2
+                    "order": 1
                 },
                 "query": {
                     "description": "Query to run (in ElasticSearch language)",
                     "data_type": "string",
-                    "order": 3,
+                    "order": 2,
                     "primary": true,
                     "contains": [
                         "elasticsearch query"
@@ -237,7 +238,7 @@
                     "data_path": "action_result.parameter.routing",
                     "data_type": "string",
                     "example_values": [
-                        "user1"
+                        "test"
                     ]
                 },
                 {
@@ -368,7 +369,7 @@
             "action": "on poll",
             "identifier": "on_poll",
             "description": "Run a query in elasticsearch and ingest the results",
-            "verbose": "This will run a query in elasticsearch using the <b>index</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Phantom in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href=\"https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html\">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. If a custom parsing script is not provided, the <a href=\"/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py\">default parsing script</a> is used:<br><pre class=\"shell\"><code>def ingest_parser(data):\n    results = []\n    if not isinstance(data, dict):\n        return results\n\n    hits = data.get('hits', {}).get('hits', [])\n    for hit in hits:\n        container = {}\n        artifacts = []\n\n        # anything printed to stdout will be added to the phantom debug logs\n        print('Found hit {}. Building container'.format(hit['_id']))\n\n        container['run_automation'] = False\n        container['source_data_identifier'] = hit['_id']\n        container['name'] = 'Elasticsearch: {} {} {}'.format(hit['_index'],\n                                                             ,\n                                                             hit['_id'])\n\n        artifacts.append({\n            # always True since there is only one\n            'run_automation': True,\n            'label': 'event',\n            'name': 'elasticsearch event',\n            'cef': hit.get('_source'),\n            'source_data_identifier': hit['_id']\n        })\n\n        results.append({\n            'container': container,\n            'artifacts': artifacts\n        })\n\n    return results\n</code></pre>.",
+            "verbose": "This will run a query in elasticsearch using the <b>index</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Splunk SOAR in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href=\"https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html\">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. If a custom parsing script is not provided, the <a href=\"/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py\">default parsing script</a> is used:<br><pre class=\"shell\"><code>def ingest_parser(data):\n    results = []\n    if not isinstance(data, dict):\n        return results\n\n    hits = data.get('hits', {}).get('hits', [])\n    for hit in hits:\n        container = {}\n        artifacts = []\n\n        # anything printed to stdout will be added to the Splunk SOAR debug logs\n        print('Found hit {}. Building container'.format(hit['_id']))\n\n        container['run_automation'] = False\n        container['source_data_identifier'] = hit['_id']\n        container['name'] = 'Elasticsearch: {} {} {}'.format(hit['_index'],\n                                                             ,\n                                                             hit['_id'])\n\n        artifacts.append({\n            # always True since there is only one\n            'run_automation': True,\n            'label': 'event',\n            'name': 'elasticsearch event',\n            'cef': hit.get('_source'),\n            'source_data_identifier': hit['_id']\n        })\n\n        results.append({\n            'container': container,\n            'artifacts': artifacts\n        })\n\n    return results\n</code></pre>.",
             "type": "ingest",
             "read_only": true,
             "parameters": {

@@ -103,22 +103,22 @@ class ElasticsearchConnector(BaseConnector):
         """
 
         error_code = None
-        error_msg = ELASTICSEARCH_ERROR_MESSAGE_UNAVAILABLE
+        error_message = ELASTICSEARCH_ERROR_MESSAGE_UNAVAILABLE
         self._dump_error_log(e)
         try:
             if hasattr(e, "args"):
                 if len(e.args) > 1:
                     error_code = e.args[0]
-                    error_msg = e.args[1]
+                    error_message = e.args[1]
                 elif len(e.args) == 1:
-                    error_msg = e.args[0]
+                    error_message = e.args[0]
         except Exception as ex:
             self._dump_error_log(ex, "Error occurred while fetching exception information")
 
         if not error_code:
-            error_text = "Error Message: {}".format(error_msg)
+            error_text = "Error Message: {}".format(error_message)
         else:
-            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_msg)
+            error_text = "Error Code: {}. Error Message: {}".format(error_code, error_message)
 
         return error_text
 
@@ -174,7 +174,7 @@ class ElasticsearchConnector(BaseConnector):
 
     def _process_empty_response(self, response, action_result):
 
-        if response.status_code == 200:
+        if response.status_code in [200, 204]:
             return RetVal(phantom.APP_SUCCESS, {})
 
         return RetVal(action_result.set_status(
@@ -245,13 +245,14 @@ class ElasticsearchConnector(BaseConnector):
         try:
             r = request_func(self._base_url + endpoint,  # The complete url is made up of the base_url, and the endpoint
                              auth=(self._username, self._password) if self._auth_method else None,
-                             json=json,
+                             json=json,  # data is passing as json string
                              headers=headers,  # The headers to send in the HTTP call
                              verify=config[phantom.APP_JSON_VERIFY],  # should cert verification be carried out?
-                             params=params)  # uri parameters if any
+                             params=params,  # uri parameters if any
+                             timeout=ELASTICSEARCH_DEFAULT_TIMEOUT)
         except Exception as e:
             error_message = self._get_error_message_from_exception(e)
-            return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERROR_SERVER_CONNECTION, error_message), resp_json
+            return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERROR_SERVER_MESSAGE, error_message), resp_json
 
         return self._process_response(r, action_result)
 
@@ -265,7 +266,7 @@ class ElasticsearchConnector(BaseConnector):
         action_result = self.add_action_result(ActionResult(dict(param)))
 
         # Progress message, since it is test connectivity, it pays to be verbose
-        self.save_progress(ELASTICSEARCH_MSG_CLUSTER_HEALTH)
+        self.save_progress(ELASTICSEARCH_MESSAGE_CLUSTER_HEALTH)
 
         # Make the rest endpoint call
         ret_val, response = self._make_rest_call(ELASTICSEARCH_CLUSTER_HEALTH, action_result)
@@ -307,7 +308,7 @@ class ElasticsearchConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Unable to load query json. Error: {0}".format(error_message))
 
         if param.get(ELASTICSEARCH_JSON_INDEX):
-            endpoint = ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX.format(param[ELASTICSEARCH_JSON_INDEX])
+            endpoint = ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX.format(param.get(ELASTICSEARCH_JSON_INDEX))
         else:
             endpoint = ELASTICSEARCH_QUERY_SEARCH_WITHOUT_INDEX
 
@@ -374,11 +375,12 @@ class ElasticsearchConnector(BaseConnector):
         return self.save_container(container)
 
     def _on_poll(self, param):
+        action_result = self.add_action_result(ActionResult(dict(param)))
         container_count = param.get('container_count', 0)
 
         config = self.get_config()
         if not all(x in config for x in self.REQUIRED_INGESTION_FIELDS):
-            return self.set_status(phantom.APP_ERROR, 'Ingestion requires a configured index and query.')
+            return action_result.set_status(phantom.APP_ERROR, 'Ingestion requires a configured index and query.')
 
         query_params = {
             ELASTICSEARCH_JSON_INDEX: config['ingest_index'],
@@ -427,7 +429,7 @@ class ElasticsearchConnector(BaseConnector):
                 for ret_dict in ret_dict_list:
                     self._save_container(ret_dict)
 
-        return self.set_status(phantom.APP_SUCCESS)
+        return action_result.set_status(phantom.APP_SUCCESS)
 
     def handle_action(self, param):
         """Function that handles all the actions"""
@@ -452,12 +454,6 @@ class ElasticsearchConnector(BaseConnector):
 
 
 if __name__ == '__main__':
-    """ Code that is executed when run in standalone debug mode
-    for .e.g:
-    python2.7 ./elasticsearch_connector.py /tmp/elasticsearch_test_create_ticket.json
-        """
-
-    # Imports
     import pudb
 
     # Breakpoint at runtime
