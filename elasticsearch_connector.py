@@ -307,10 +307,7 @@ class ElasticsearchConnector(BaseConnector):
             error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, "Unable to load query json. Error: {0}".format(error_message))
 
-        if param.get(ELASTICSEARCH_JSON_INDEX):
-            endpoint = ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX.format(param.get(ELASTICSEARCH_JSON_INDEX))
-        else:
-            endpoint = ELASTICSEARCH_QUERY_SEARCH_WITHOUT_INDEX
+        endpoint = ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX.format(param.get(ELASTICSEARCH_JSON_INDEX))
 
         routing = param.get(ELASTICSEARCH_JSON_ROUTING)
 

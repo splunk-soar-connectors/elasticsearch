@@ -182,6 +182,7 @@
                     "description": "Index to query on",
                     "data_type": "string",
                     "order": 0,
+                    "required": true,
                     "contains": [
                         "elasticsearch index"
                     ],
