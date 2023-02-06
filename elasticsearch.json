@@ -16,7 +16,7 @@
     "fips_compliant": true,
     "logo": "logo_elastic.svg",
     "logo_dark": "logo_elastic_dark.svg",
-    "license": "Copyright (c) 2016-2022 Splunk Inc.",
+    "license": "Copyright (c) 2016-2023 Splunk Inc.",
     "latest_tested_versions": [
         "On-prem: version 8.5.1, November 21 2022"
     ],
