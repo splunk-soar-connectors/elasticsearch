@@ -36,7 +36,7 @@ class PhantomDebugWriter():
         self.this = this
 
     def write(self, message):
-        self.this.debug_print(message)
+        self.this.save_progress(message)
 
 
 class RetVal(tuple):
@@ -63,7 +63,6 @@ class ElasticsearchConnector(BaseConnector):
         self._auth_method = None
         self._username = None
         self._password = None
-        self._key = None
 
         # Call the BaseConnectors init first
         super(ElasticsearchConnector, self).__init__()
@@ -163,7 +162,7 @@ class ElasticsearchConnector(BaseConnector):
         except Exception:
             error_text = "Cannot parse error details"
 
-        message = "Status Code: {0}. Data from server:\n{1}\n".format(status_code, error_text)
+        message = "Status Code: {0}. Response from server:\n{1}\n".format(status_code, error_text)
 
         message = message.replace('{', '{{').replace('}', '}}')
 
@@ -174,7 +173,7 @@ class ElasticsearchConnector(BaseConnector):
 
     def _process_empty_response(self, response, action_result):
 
-        if response.status_code in [200, 204]:
+        if response.status_code in ELASTICSEARCH_EMPTY_RESPONSE_STATUS_CODES:
             return RetVal(phantom.APP_SUCCESS, {})
 
         return RetVal(action_result.set_status(
@@ -209,7 +208,7 @@ class ElasticsearchConnector(BaseConnector):
             return self._process_empty_response(r, action_result)
 
         # everything else is actually an error at this point
-        message = "Can't process response from server. Status Code: {0} Data from server: {1}".format(
+        message = "Can't process response from server. Status Code: {0} Response from server: {1}".format(
             r.status_code, r.text.replace('{', '{{').replace('}', '}}'))
 
         return RetVal(action_result.set_status(phantom.APP_ERROR, message), None)
@@ -372,12 +371,11 @@ class ElasticsearchConnector(BaseConnector):
         return self.save_container(container)
 
     def _on_poll(self, param):
-        action_result = self.add_action_result(ActionResult(dict(param)))
         container_count = param.get('container_count', 0)
 
         config = self.get_config()
         if not all(x in config for x in self.REQUIRED_INGESTION_FIELDS):
-            return action_result.set_status(phantom.APP_ERROR, 'Ingestion requires a configured index and query.')
+            return self.set_status(phantom.APP_ERROR, ELASTICSEARCH_ON_POLL_ERROR_MESSAGE)
 
         query_params = {
             ELASTICSEARCH_JSON_INDEX: config['ingest_index'],
@@ -386,6 +384,7 @@ class ElasticsearchConnector(BaseConnector):
         if 'ingest_routing' in config:
             query_params[ELASTICSEARCH_JSON_ROUTING] = config['routing']
 
+        self.save_progress("Quering data for {} index".format(config['ingest_index']))
         ret_val = self._run_query(query_params)
         if phantom.is_fail(ret_val):
             return ret_val
@@ -394,13 +393,11 @@ class ElasticsearchConnector(BaseConnector):
         parser = config.get('ingest_parser')
         for action_result in action_results:
             for data in action_result.get_data():
-                ret_dict_list = None
                 saved_stdout = sys.stdout
                 debug_out = PhantomDebugWriter(self)
                 if parser:
                     parser_name = config['ingest_parser__filename']
                     self.save_progress("Using specified parser: {0}".format(parser_name))
-
                     ingest_parser = imp.new_module("custom_parser")  # noqa
                     try:
                         sys.stdout = debug_out
@@ -420,7 +417,7 @@ class ElasticsearchConnector(BaseConnector):
                 if not ret_dict_list:
                     continue
 
-                if container_count and self.is_poll_now() and container_count > len(ret_dict_list):
+                if container_count and self.is_poll_now() and container_count < len(ret_dict_list):
                     ret_dict_list = ret_dict_list[:container_count]
 
                 for ret_dict in ret_dict_list:
@@ -450,30 +447,70 @@ class ElasticsearchConnector(BaseConnector):
         return ret_val
 
 
-if __name__ == '__main__':
-    import pudb
+def main():
+    import argparse
 
-    # Breakpoint at runtime
-    pudb.set_trace()
+    argparser = argparse.ArgumentParser()
 
-    # The first param is the input json file
-    with open(sys.argv[1]) as f:
+    argparser.add_argument('input_test_json', help='Input Test JSON file')
+    argparser.add_argument('-u', '--username', help='username', required=False)
+    argparser.add_argument('-p', '--password', help='password', required=False)
+    argparser.add_argument('-v', '--verify', action='store_true', help='verify', required=False, default=False)
 
-        # Load the input json file
+    args = argparser.parse_args()
+    session_id = None
+
+    username = args.username
+    password = args.password
+    verify = args.verify
+
+    if username is not None and password is None:
+
+        # User specified a username but not a password, so ask
+        import getpass
+        password = getpass.getpass("Password: ")
+
+    if username and password:
+        try:
+            login_url = BaseConnector._get_phantom_base_url() + 'login'
+
+            print("Accessing the Login page")
+            r = requests.get(login_url, verify=verify, timeout=ELASTICSEARCH_DEFAULT_TIMEOUT)
+            csrftoken = r.cookies['csrftoken']
+
+            data = dict()
+            data['username'] = username
+            data['password'] = password
+            data['csrfmiddlewaretoken'] = csrftoken
+
+            headers = dict()
+            headers['Cookie'] = 'csrftoken=' + csrftoken
+            headers['Referer'] = login_url
+
+            print("Logging into Platform to get the session id")
+            r2 = requests.post(login_url, verify=verify, data=data, headers=headers, timeout=ELASTICSEARCH_DEFAULT_TIMEOUT)
+            session_id = r2.cookies['sessionid']
+        except Exception as e:
+            print("Unable to get session id from the platform. Error: " + str(e))
+            sys.exit(1)
+
+    with open(args.input_test_json) as f:
         in_json = f.read()
         in_json = json.loads(in_json)
-        # print(json.dumps(in_json, indent=' ' * 4))
+        print(json.dumps(in_json, indent=4))
 
-        # Create the connector class object
         connector = ElasticsearchConnector()
-
-        # Se the member vars
         connector.print_progress_message = True
 
-        # Call BaseConnector::_handle_action(...) to kickoff action handling.
-        ret_val = connector._handle_action(json.dumps(in_json), None)
+        if session_id is not None:
+            in_json['user_session_token'] = session_id
+            connector._set_csrf_info(csrftoken, headers['Referer'])
 
-        # Dump the return value
-        print(ret_val)
+        ret_val = connector._handle_action(json.dumps(in_json), None)
+        print(json.dumps(json.loads(ret_val), indent=4))
 
     sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

@@ -19,6 +19,7 @@ ELASTICSEARCH_JSON_TYPE = "type"
 ELASTICSEARCH_JSON_ROUTING = "routing"
 ELASTICSEARCH_JSON_TOTAL_HITS = "total_hits"
 ELASTICSEARCH_JSON_TIMED_OUT = "timed_out"
+ELASTICSEARCH_EMPTY_RESPONSE_STATUS_CODES = [200, 204]
 
 # endpoints
 ELASTICSEARCH_CLUSTER_HEALTH = '/_cluster/health'
@@ -34,4 +35,5 @@ ELASTICSEARCH_ERROR_API_UNSUPPORTED_METHOD = "Unsupported method"
 ELASTICSEARCH_USING_BASE_URL = "Using url: {base_url}"
 ELASTICSEARCH_ERROR_JSON_PARSE = "Unable to parse reply as a Json, raw string reply: '{raw_text}'"
 ELASTICSEARCH_ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
+ELASTICSEARCH_ON_POLL_ERROR_MESSAGE = "Ingestion requires a configured index and query."
 ELASTICSEARCH_DEFAULT_TIMEOUT = 60
