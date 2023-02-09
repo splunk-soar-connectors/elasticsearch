@@ -387,7 +387,7 @@ class ElasticsearchConnector(BaseConnector):
             ELASTICSEARCH_JSON_QUERY: config['ingest_query']
         }
         if 'ingest_routing' in config:
-            query_params[ELASTICSEARCH_JSON_ROUTING] = config['routing']
+            query_params[ELASTICSEARCH_JSON_ROUTING] = config['ingest_routing']
 
         self.save_progress("Quering data for {} index".format(config['ingest_index']))
         ret_val = self._run_query(query_params)
