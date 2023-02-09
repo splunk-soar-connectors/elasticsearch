@@ -17,6 +17,7 @@
 import imp
 import json
 import sys
+import urllib.parse as urllib
 
 import phantom.app as phantom
 import requests
@@ -242,7 +243,7 @@ class ElasticsearchConnector(BaseConnector):
 
         # Make the call
         try:
-            r = request_func(self._base_url + endpoint,  # The complete url is made up of the base_url, and the endpoint
+            r = request_func(f'{self._base_url}{endpoint}',  # The complete url is made up of the base_url, and the endpoint
                              auth=(self._username, self._password) if self._auth_method else None,
                              json=json,  # data is passing as json string
                              headers=headers,  # The headers to send in the HTTP call
@@ -284,7 +285,7 @@ class ElasticsearchConnector(BaseConnector):
             # return error
             return phantom.APP_ERROR
 
-        self.save_progress(ELASTICSEARCH_SUCC_CONNECTIVITY_TEST)
+        self.save_progress(ELASTICSEARCH_SUCCESS_CONNECTIVITY_TEST)
         # Set the status of the connector result
         return action_result.set_status(phantom.APP_SUCCESS)
 
@@ -307,7 +308,7 @@ class ElasticsearchConnector(BaseConnector):
             return action_result.set_status(phantom.APP_ERROR, "Unable to load query json. Error: {0}".format(error_message))
 
         index = [x.strip() for x in param.get(ELASTICSEARCH_JSON_INDEX).split(",")]
-        index = ",".join(list(filter(None, index)))
+        index = ",".join(set(filter(None, index)))
         if not index:
             return self._action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERROR_INVALID_ACTION_PARAM.format(
                                                       key="index"))
@@ -317,7 +318,7 @@ class ElasticsearchConnector(BaseConnector):
 
         params = None
         if routing:
-            params = {'routing': routing}
+            params = {'routing': urllib.quote(routing)}
 
         # Connectivity
         self.save_progress(phantom.APP_PROG_CONNECTING_TO_ELLIPSES, self._host)

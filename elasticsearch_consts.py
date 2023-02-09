@@ -27,7 +27,7 @@ ELASTICSEARCH_GET_INDEXES = '/_cat/indices'
 ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX = '/{0}/_search'
 
 ELASTICSEARCH_ERROR_CONNECTIVITY_TEST = "Test Connectivity Failed"
-ELASTICSEARCH_SUCC_CONNECTIVITY_TEST = "Test Connectivity Passed"
+ELASTICSEARCH_SUCCESS_CONNECTIVITY_TEST = "Test Connectivity Passed"
 ELASTICSEARCH_ERROR_SERVER_MESSAGE = "Connection failed"
 ELASTICSEARCH_ERROR_FROM_SERVER = "API failed, Status code: {status}, Detail: {detail}"
 ELASTICSEARCH_MESSAGE_CLUSTER_HEALTH = "Querying cluster health to check connectivity"
