@@ -36,4 +36,5 @@ ELASTICSEARCH_USING_BASE_URL = "Using url: {base_url}"
 ELASTICSEARCH_ERROR_JSON_PARSE = "Unable to parse reply as a Json, raw string reply: '{raw_text}'"
 ELASTICSEARCH_ERROR_MESSAGE_UNAVAILABLE = "Error message unavailable. Please check the asset configuration and|or action parameters"
 ELASTICSEARCH_ON_POLL_ERROR_MESSAGE = "Ingestion requires a configured index and query."
+ELASTICSEARCH_ERROR_INVALID_ACTION_PARAM = "Please provide a valid value in the '{key}' parameter"
 ELASTICSEARCH_DEFAULT_TIMEOUT = 60

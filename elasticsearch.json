@@ -173,13 +173,13 @@
         {
             "action": "run query",
             "description": "Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string",
-            "verbose": "The action executes the query on an Elasticsearch installation by doing a POST on the REST endpoint '<b>base_url</b>/<b>index(optional)</b>/_search' with the input <b>query</b> as the data, if specified. Please see the Elasticseach website for query format and documentation.<br>The <b>routing</b> parameter is appended as a parameter in the REST call if specified.<br>As an e.g. the following query returns only the <i>id</i> and <i>name</i> of all the items from the given <b>index</b><br>{ \"query\": { \"match_all\": {} }, \"_source\": [\"id\", \"name\"]}.",
+            "verbose": "The action executes the query on an Elasticsearch installation by doing a POST on the REST endpoint '<b>base_url</b>/<b>index</b>/_search' with the input <b>query</b> as the data, if specified. Please see the Elasticseach website for query format and documentation.<br>The <b>routing</b> parameter is appended as a parameter in the REST call if specified.<br>As an e.g. the following query returns only the <i>id</i> and <i>name</i> of all the items from the given <b>index</b><br>{ \"query\": { \"match_all\": {} }, \"_source\": [\"id\", \"name\"]}.",
             "type": "investigate",
             "identifier": "run_query",
             "read_only": true,
             "parameters": {
                 "index": {
-                    "description": "Index to query on",
+                    "description": "Comma seperated list of indexes to query on",
                     "data_type": "string",
                     "order": 0,
                     "required": true,
