@@ -5,7 +5,7 @@
     "publisher": "Splunk",
     "type": "siem",
     "main_module": "elasticsearch_connector.py",
-    "app_version": "2.1.0",
+    "app_version": "3.0.0",
     "utctime_updated": "2022-02-17T00:44:05.000000Z",
     "package_name": "phantom_elasticsearch",
     "product_name": "Elasticsearch",
@@ -239,7 +239,7 @@
                     "data_path": "action_result.parameter.routing",
                     "data_type": "string",
                     "example_values": [
-                        "test"
+                        "route1"
                     ]
                 },
                 {

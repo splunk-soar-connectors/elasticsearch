@@ -307,7 +307,7 @@ class ElasticsearchConnector(BaseConnector):
             error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, "Unable to load query json. Error: {0}".format(error_message))
 
-        index = [x.strip() for x in param.get(ELASTICSEARCH_JSON_INDEX).split(",")]
+        index = [ind.strip() for ind in param.get(ELASTICSEARCH_JSON_INDEX).split(",")]
         index = ",".join(set(filter(None, index)))
         if not index:
             return self._action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERROR_INVALID_ACTION_PARAM.format(
@@ -380,7 +380,7 @@ class ElasticsearchConnector(BaseConnector):
         container_count = param.get('container_count', 0)
 
         config = self.get_config()
-        if not all(x in config for x in self.REQUIRED_INGESTION_FIELDS):
+        if not all(field in config for field in self.REQUIRED_INGESTION_FIELDS):
             return self.set_status(phantom.APP_ERROR, ELASTICSEARCH_ON_POLL_ERROR_MESSAGE)
 
         query_params = {
