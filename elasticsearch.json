@@ -179,7 +179,7 @@
             "read_only": true,
             "parameters": {
                 "index": {
-                    "description": "Comma seperated list of indexes to query on",
+                    "description": "Comma-separated list of indexes to query on",
                     "data_type": "string",
                     "order": 0,
                     "required": true,
