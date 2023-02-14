@@ -99,7 +99,7 @@ and limitations under the License.
     <!-- Indices -->
       {% if result.data %}
       <table class="wf-table-horizontal">
-        <tr><th>Index</th><th>Types</th></tr>
+          <tr><th>Index</th><th>Health</th><th>Status</th><th>Document Count</th><th>Store Size</th></tr>
         {% for curr_data in result.data %} <!-- for each index -->
         <tr>
           <td>
@@ -108,14 +108,18 @@ and limitations under the License.
               &nbsp;<span class="fa fa-caret-down" style="font-size: smaller;"></span>
             </a>
           </td>
-          <td>
-            {% for curr_type in curr_data.types %} <!-- for each type -->
-              <a href="javascript:;" onclick="context_menu(this, [{'contains': ['elasticsearch type'], 'value': '{{ curr_type }}' }, {'contains': ['elasticsearch index'], 'value': '{{ curr_data.index }}' }], 0, {{ container.id }}, null, false);">
-                {{ curr_type }}
-                &nbsp;<span class="fa fa-caret-down" style="font-size: smaller;"></span>
-              </a>
-            {% endfor %} <!-- for each type -->
-          </td>
+            <td>
+                {{ curr_data.health }}
+            </td>
+            <td>
+                {{ curr_data.status }}
+            </td>
+            <td>
+                {{ curr_data.document_count }}
+            </td>
+            <td>
+                {{ curr_data.store_size }}
+            </td>
         </tr>
         {% endfor %} <!-- for each index -->
       </table>

@@ -5,20 +5,20 @@
     "publisher": "Splunk",
     "type": "siem",
     "main_module": "elasticsearch_connector.py",
-    "app_version": "2.0.6",
+    "app_version": "3.0.0",
     "utctime_updated": "2022-02-17T00:44:05.000000Z",
     "package_name": "phantom_elasticsearch",
     "product_name": "Elasticsearch",
     "product_vendor": "Elastic",
     "product_version_regex": ".*",
-    "min_phantom_version": "5.1.0",
+    "min_phantom_version": "5.4.0",
     "python_version": "3",
     "fips_compliant": true,
     "logo": "logo_elastic.svg",
     "logo_dark": "logo_elastic_dark.svg",
-    "license": "Copyright (c) 2016-2022 Splunk Inc.",
+    "license": "Copyright (c) 2016-2023 Splunk Inc.",
     "latest_tested_versions": [
-        "On-prem: version 5.2.2, February 16 2021"
+        "On-prem: version 8.5.1, November 21 2022"
     ],
     "configuration": {
         "url": {
@@ -48,26 +48,21 @@
             "data_type": "string",
             "order": 4
         },
-        "ingest_type": {
-            "description": "Ingestion type",
-            "data_type": "string",
-            "order": 5
-        },
         "ingest_routing": {
             "description": "Ingestion routing",
             "data_type": "string",
-            "order": 6
+            "order": 5
         },
         "ingest_query": {
             "description": "Ingestion query",
             "data_type": "string",
-            "order": 7
+            "order": 6
         },
         "ingest_parser": {
             "description": "Custom Elasticsearch parser",
             "data_type": "file",
             "extensions": ".py",
-            "order": 8
+            "order": 7
         }
     },
     "actions": [
@@ -83,7 +78,7 @@
         },
         {
             "action": "get config",
-            "description": "Returns the list of indices and types currently configured on the ElasticSearch instance",
+            "description": "Returns the list of indices and their information currently configured on the ElasticSearch instance",
             "type": "investigate",
             "identifier": "get_config",
             "read_only": true,
@@ -92,7 +87,6 @@
                 "type": "custom",
                 "width": 10,
                 "height": 5,
-                "title": "Get Config",
                 "view": "elasticsearch_view.display_config"
             },
             "output": [
@@ -105,17 +99,44 @@
                     ]
                 },
                 {
+                    "data_path": "action_result.data.*.document_count",
+                    "data_type": "string",
+                    "example_values": [
+                        "1"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.health",
+                    "data_type": "string",
+                    "example_values": [
+                        "green",
+                        "red",
+                        "yellow"
+                    ]
+                },
+                {
                     "data_path": "action_result.data.*.index",
                     "data_type": "string",
                     "contains": [
                         "elasticsearch index"
+                    ],
+                    "example_values": [
+                        "test_index"
                     ]
                 },
                 {
-                    "data_path": "action_result.data.*.types",
+                    "data_path": "action_result.data.*.status",
                     "data_type": "string",
-                    "contains": [
-                        "elasticsearch type"
+                    "example_values": [
+                        "open"
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*.store_size",
+                    "data_type": "string",
+                    "example_values": [
+                        "12mb",
+                        "12b"
                     ]
                 },
                 {
@@ -152,13 +173,13 @@
         {
             "action": "run query",
             "description": "Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string",
-            "verbose": "The action executes the query on an Elasticsearch installation by doing a POST on the REST endpoint '<b>base_url</b>/<b>index</b>/<b>type</b>/_search' with the input <b>query</b> as the data. Please see the Elasticseach website for query format and documentation.<br>The <b>routing</b> parameter is appended as a parameter in the REST call if specified.<br>As an e.g. the following query returns only the <i>id</i> and <i>name</i> of all the items in an <b>index</b> of the specified <b>type</b><br>{ \"query\": { \"match_all\": {} }, \"_source\": [\"id\", \"name\"]}.",
+            "verbose": "The action executes the query on an Elasticsearch installation by doing a POST on the REST endpoint '<b>base_url</b>/<b>index</b>/_search' with the input <b>query</b> as the data, if specified. Please see the Elasticseach website for query format and documentation.<br>The <b>routing</b> parameter is appended as a parameter in the REST call if specified.<br>As an e.g. the following query returns only the <i>id</i> and <i>name</i> of all the items from the given <b>index</b><br>{ \"query\": { \"match_all\": {} }, \"_source\": [\"id\", \"name\"]}.",
             "type": "investigate",
             "identifier": "run_query",
             "read_only": true,
             "parameters": {
                 "index": {
-                    "description": "Index to query on",
+                    "description": "Comma-separated list of indexes to query on",
                     "data_type": "string",
                     "order": 0,
                     "required": true,
@@ -167,25 +188,15 @@
                     ],
                     "primary": true
                 },
-                "type": {
-                    "description": "Type to query on",
-                    "data_type": "string",
-                    "order": 1,
-                    "contains": [
-                        "elasticsearch type"
-                    ],
-                    "primary": true
-                },
                 "routing": {
                     "description": "Shards to query on (routing value)",
                     "data_type": "string",
-                    "order": 2
+                    "order": 1
                 },
                 "query": {
                     "description": "Query to run (in ElasticSearch language)",
                     "data_type": "string",
-                    "order": 3,
-                    "required": true,
+                    "order": 2,
                     "primary": true,
                     "contains": [
                         "elasticsearch query"
@@ -193,11 +204,7 @@
                 }
             },
             "render": {
-                "type": "json",
-                "width": 10,
-                "height": 5,
-                "view": "elasticsearch_view.display_query_results",
-                "title": "Query Result"
+                "type": "json"
             },
             "output": [
                 {
@@ -215,7 +222,7 @@
                         "elasticsearch index"
                     ],
                     "example_values": [
-                        "phantom_index"
+                        "test_index"
                     ]
                 },
                 {
@@ -232,49 +239,60 @@
                     "data_path": "action_result.parameter.routing",
                     "data_type": "string",
                     "example_values": [
-                        "user1"
-                    ]
-                },
-                {
-                    "data_path": "action_result.parameter.type",
-                    "data_type": "string",
-                    "contains": [
-                        "elasticsearch type"
-                    ],
-                    "example_values": [
-                        "internal"
+                        "route1"
                     ]
                 },
                 {
                     "data_path": "action_result.data.*._shards.failed",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
+                },
+                {
+                    "data_path": "action_result.data.*._shards.skipped",
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*._shards.successful",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        0
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*._shards.total",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.hits.hits.*._id",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "LOdkiYNBlA_PxVqybtLP"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.hits.hits.*._index",
-                    "data_type": "string"
+                    "data_type": "string",
+                    "example_values": [
+                        "test_index"
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.hits.hits.*._score",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.hits.hits.*._source",
-                    "data_type": "numeric"
-                },
-                {
-                    "data_path": "action_result.data.*.hits.hits.*._type",
                     "data_type": "string"
                 },
                 {
@@ -283,19 +301,31 @@
                 },
                 {
                     "data_path": "action_result.data.*.hits.max_score",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
-                    "data_path": "action_result.data.*.hits.total",
-                    "data_type": "numeric"
+                    "data_path": "action_result.data.*.hits.total.relation",
+                    "data_type": "string",
+                    "example_values": [
+                        "eq"
+                    ]
                 },
                 {
-                    "data_path": "action_result.data.*.timed_out",
-                    "data_type": "boolean"
+                    "data_path": "action_result.data.*.hits.total.value",
+                    "data_type": "numeric",
+                    "example_values": [
+                        2
+                    ]
                 },
                 {
                     "data_path": "action_result.data.*.took",
-                    "data_type": "numeric"
+                    "data_type": "numeric",
+                    "example_values": [
+                        1
+                    ]
                 },
                 {
                     "data_path": "action_result.summary.timed_out",
@@ -340,7 +370,7 @@
             "action": "on poll",
             "identifier": "on_poll",
             "description": "Run a query in elasticsearch and ingest the results",
-            "verbose": "This will run a query in elasticsearch using the <b>index</b>, <b>type</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Phantom in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href=\"https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html\">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. If a custom parsing script is not provided, the <a href=\"/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py\">default parsing script</a> is used:<br><pre class=\"shell\"><code>def ingest_parser(data):\n    results = []\n    if not isinstance(data, dict):\n        return results\n\n    hits = data.get('hits', {}).get('hits', [])\n    for hit in hits:\n        container = {}\n        artifacts = []\n\n        # anything printed to stdout will be added to the phantom debug logs\n        print('Found hit {}. Building container'.format(hit['_id']))\n\n        container['run_automation'] = False\n        container['source_data_identifier'] = hit['_id']\n        container['name'] = 'Elasticsearch: {} {} {}'.format(hit['_index'],\n                                                             hit['_type'],\n                                                             hit['_id'])\n\n        artifacts.append({\n            # always True since there is only one\n            'run_automation': True,\n            'label': 'event',\n            'name': 'elasticsearch event',\n            'cef': hit.get('_source'),\n            'source_data_identifier': hit['_id']\n        })\n\n        results.append({\n            'container': container,\n            'artifacts': artifacts\n        })\n\n    return results\n</code></pre>.",
+            "verbose": "This will run a query in elasticsearch using the <b>index</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Splunk SOAR in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href=\"https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html\">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. If a custom parsing script is not provided, the <a href=\"/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py\">default parsing script</a> is used:<br><pre class=\"shell\"><code>def ingest_parser(data):\n    results = []\n    if not isinstance(data, dict):\n        return results\n\n    hits = data.get('hits', {}).get('hits', [])\n    for hit in hits:\n        container = {}\n        artifacts = []\n\n        # anything printed to stdout will be added to the Splunk SOAR debug logs\n        print('Found hit {}. Building container'.format(hit['_id']))\n\n        container['run_automation'] = False\n        container['source_data_identifier'] = hit['_id']\n        container['name'] = 'Elasticsearch: {} {} {}'.format(hit['_index'],\n                                                             ,\n                                                             hit['_id'])\n\n        artifacts.append({\n            # always True since there is only one\n            'run_automation': True,\n            'label': 'event',\n            'name': 'elasticsearch event',\n            'cef': hit.get('_source'),\n            'source_data_identifier': hit['_id']\n        })\n\n        results.append({\n            'container': container,\n            'artifacts': artifacts\n        })\n\n    return results\n</code></pre>.",
             "type": "ingest",
             "read_only": true,
             "parameters": {
@@ -372,8 +402,12 @@
     "pip_dependencies": {
         "wheel": [
             {
+                "module": "beautifulsoup4",
+                "input_file": "wheels/py3/beautifulsoup4-4.9.1-py3-none-any.whl"
+            },
+            {
                 "module": "certifi",
-                "input_file": "wheels/shared/certifi-2021.10.8-py2.py3-none-any.whl"
+                "input_file": "wheels/py3/certifi-2022.12.7-py3-none-any.whl"
             },
             {
                 "module": "chardet",
@@ -388,8 +422,12 @@
                 "input_file": "wheels/shared/requests-2.25.0-py2.py3-none-any.whl"
             },
             {
+                "module": "soupsieve",
+                "input_file": "wheels/py3/soupsieve-2.3.2.post1-py3-none-any.whl"
+            },
+            {
                 "module": "urllib3",
-                "input_file": "wheels/shared/urllib3-1.26.8-py2.py3-none-any.whl"
+                "input_file": "wheels/shared/urllib3-1.26.14-py2.py3-none-any.whl"
             }
         ]
     }

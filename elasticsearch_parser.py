@@ -1,6 +1,6 @@
 # File: elasticsearch_parser.py
 #
-# Copyright (c) 2016-2022 Splunk Inc.
+# Copyright (c) 2016-2023 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,8 +27,7 @@ def ingest_parser(data):
 
         container['run_automation'] = False
         container['source_data_identifier'] = hit['_id']
-        container['name'] = 'Elasticsearch: {} {} {}'.format(hit['_index'],
-                                                             hit['_type'],
+        container['name'] = 'Elasticsearch: {} {}'.format(hit['_index'],
                                                              hit['_id'])
 
         artifacts.append({
