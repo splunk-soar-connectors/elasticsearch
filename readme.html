@@ -1,5 +1,5 @@
 <!-- File: readme.html
-  Copyright (c) 2016-2022 Splunk Inc.
+  Copyright (c) 2016-2023 Splunk Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,4 +13,18 @@ either express or implied. See the License for the specific language governing p
 and limitations under the License.
 -->
 
-<p>Elasticsearch installations can be configured to allow REST API access without any type of authentication. The app therefore marks <b>username</b> and <b>password</b> as optional parameters. If specified, the app will end up using these for generating the basic authentication header used in the various Elasticsearch REST endpoints.<br>Connection can be configured over HTTP or HTTPS, so if <b>test connectivity</b> fails please check the protocol.</p>
+<p>Elasticsearch installations can be configured to allow REST API access without any type of authentication.
+    The app therefore marks <b>username</b> and <b>password</b> as optional parameters. If specified, the app
+    will use these for generating the basic authentication header for various Elasticsearch
+    REST endpoints.<br>The connection can be configured over HTTP or HTTPS, so if <b>test connectivity</b>
+    fails please check the protocol.
+</p>
+<p><b>Playbook Backward Compatibility</b><br>
+    An action parameter has been changed as detailed below. Hence, it is recommended that the end-user update their existing playbooks parameters accordingly to ensure that playbooks created using earlier versions of the app are functioning correctly.
+    <ul>
+        <li><b>Changes from version 2.0.5 to version 3.0.0:</b></li>
+        <ul>
+            <li>run query - <b>type</b> parameter has been removed. <br> Reference: <a href="https://www.elastic.co/guide/en/elasticsearch/reference/7.17/removal-of-types.html#_search_apis">Removal of mapping types from search API</a></li>
+        </ul>
+    </ul>
+</p>
