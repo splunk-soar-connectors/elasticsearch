@@ -1,6 +1,6 @@
 # File: elasticsearch_consts.py
 #
-# Copyright (c) 2016-2024 Splunk Inc.
+# Copyright (c) 2016-2025 Splunk Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ ELASTICSEARCH_JSON_TIMED_OUT = "timed_out"
 ELASTICSEARCH_EMPTY_RESPONSE_STATUS_CODES = [200, 204]
 
 # endpoints
-ELASTICSEARCH_CLUSTER_HEALTH = '/_cluster/health'
-ELASTICSEARCH_GET_INDEXES = '/_cat/indices'
-ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX = '/{0}/_search'
+ELASTICSEARCH_CLUSTER_HEALTH = "/_cluster/health"
+ELASTICSEARCH_GET_INDEXES = "/_cat/indices"
+ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX = "/{0}/_search"
 
 ELASTICSEARCH_ERROR_CONNECTIVITY_TEST = "Test Connectivity Failed"
 ELASTICSEARCH_SUCCESS_CONNECTIVITY_TEST = "Test Connectivity Passed"
