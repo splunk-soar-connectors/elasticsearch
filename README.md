@@ -1,7 +1,7 @@
 # Elasticsearch
 
 Publisher: Splunk \
-Connector Version: 3.0.1 \
+Connector Version: 3.0.2 \
 Product Vendor: Elastic \
 Product Name: Elasticsearch \
 Minimum Product Version: 5.4.0
