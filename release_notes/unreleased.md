@@ -1,2 +1,3 @@
 **Unreleased**
 * Remove beautifulsoup4 from requirements.txt
+* Update Python version for 3.13
