@@ -1,9 +1,9 @@
 # Elasticsearch
 
-Publisher: Splunk \
-Connector Version: 3.0.5 \
-Product Vendor: Elastic \
-Product Name: Elasticsearch \
+Publisher: Splunk <br>
+Connector Version: 3.0.5 <br>
+Product Vendor: Elastic <br>
+Product Name: Elasticsearch <br>
 Minimum Product Version: 5.4.0
 
 This app integrates with an Elasticsearch installation to implement ingestion and investigative actions
@@ -43,16 +43,16 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity. This action logs into the device to check the connection and credentials \
-[get config](#action-get-config) - Returns the list of indices and their information currently configured on the ElasticSearch instance \
-[run query](#action-run-query) - Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string \
+[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity. This action logs into the device to check the connection and credentials <br>
+[get config](#action-get-config) - Returns the list of indices and their information currently configured on the ElasticSearch instance <br>
+[run query](#action-run-query) - Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string <br>
 [on poll](#action-on-poll) - Run a query in elasticsearch and ingest the results
 
 ## action: 'test connectivity'
 
 Validate the asset configuration for connectivity. This action logs into the device to check the connection and credentials
 
-Type: **test** \
+Type: **test** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -67,7 +67,7 @@ No Output
 
 Returns the list of indices and their information currently configured on the ElasticSearch instance
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 #### Action Parameters
@@ -93,7 +93,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string
 
-Type: **investigate** \
+Type: **investigate** <br>
 Read only: **True**
 
 The action executes the query on an Elasticsearch installation by doing a POST on the REST endpoint '<b>base_url</b>/<b>index</b>/\_search' with the input <b>query</b> as the data, if specified. Please see the Elasticseach website for query format and documentation.<br>The <b>routing</b> parameter is appended as a parameter in the REST call if specified.<br>As an e.g. the following query returns only the <i>id</i> and <i>name</i> of all the items from the given <b>index</b><br>{ "query": { "match_all": {} }, "\_source": ["id", "name"]}.
@@ -137,7 +137,7 @@ summary.total_objects_successful | numeric | | 1 |
 
 Run a query in elasticsearch and ingest the results
 
-Type: **ingest** \
+Type: **ingest** <br>
 Read only: **True**
 
 This will run a query in elasticsearch using the <b>index</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Splunk SOAR in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. If a custom parsing script is not provided, the <a href="/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py">default parsing script</a> is used:<br><pre class="shell"><code>def ingest_parser(data):
