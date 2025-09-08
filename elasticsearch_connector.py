@@ -14,9 +14,9 @@
 # and limitations under the License.
 """Code that implements calls made to the elasticsearch systems device"""
 
-import imp
 import json
 import sys
+import types
 import urllib.parse as urllib
 
 import phantom.app as phantom
@@ -404,11 +404,11 @@ class ElasticsearchConnector(BaseConnector):
                 if parser:
                     parser_name = config["ingest_parser__filename"]
                     self.save_progress(f"Using specified parser: {parser_name}")
-                    ingest_parser = imp.new_module("custom_parser")
+                    ingest_parser = types.ModuleType("custom_parser")
                     try:
                         sys.stdout = debug_out
                         exec(parser, ingest_parser.__dict__)
-                        ret_dict_list = ingest_parser.ingest_parser(data)
+                        ret_dict_list = ingest_parser.ingest_parser(data)  # pylint: disable=no-member
                     except Exception as e:
                         error_message = self._get_error_message_from_exception(e)
                         return action_result.set_status(phantom.APP_ERROR, f"Unable to execute ingest parser: {error_message}")
