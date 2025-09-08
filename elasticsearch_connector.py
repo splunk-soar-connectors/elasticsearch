@@ -408,7 +408,7 @@ class ElasticsearchConnector(BaseConnector):
                     try:
                         sys.stdout = debug_out
                         exec(parser, ingest_parser.__dict__)
-                        ret_dict_list = ingest_parser.ingest_parser(data)
+                        ret_dict_list = ingest_parser.ingest_parser(data)  # pylint: disable=no-member
                     except Exception as e:
                         error_message = self._get_error_message_from_exception(e)
                         return action_result.set_status(phantom.APP_ERROR, f"Unable to execute ingest parser: {error_message}")
