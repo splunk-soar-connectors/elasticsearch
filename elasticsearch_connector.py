@@ -54,6 +54,7 @@ class ElasticsearchConnector(BaseConnector):
     ACTION_ID_RUN_QUERY = "run_query"
     ACTION_ID_GET_CONFIG = "get_config"
     REQUIRED_INGESTION_FIELDS = ["ingest_index", "ingest_query"]
+    INVALID_INDEX_CHARACTERS = frozenset('/\\?"<>| #')
 
     def __init__(self):
         """ """
@@ -306,10 +307,17 @@ class ElasticsearchConnector(BaseConnector):
             error_message = self._get_error_message_from_exception(e)
             return action_result.set_status(phantom.APP_ERROR, f"Unable to load query json. Error: {error_message}")
 
-        index = [ind.strip() for ind in param.get(ELASTICSEARCH_JSON_INDEX).split(",")]
-        index = ",".join(set(filter(None, index)))
-        if not index:
-            return self._action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERROR_INVALID_ACTION_PARAM.format(key="index"))
+        indexes = list(dict.fromkeys(ind.strip() for ind in param.get(ELASTICSEARCH_JSON_INDEX).split(",") if ind.strip()))
+        if not indexes:
+            return action_result.set_status(phantom.APP_ERROR, ELASTICSEARCH_ERROR_INVALID_ACTION_PARAM.format(key="index"))
+
+        for index in indexes:
+            if index in {"*", "_all"}:
+                continue
+            if index != index.lower() or index[0] in "-_+" or any(character in self.INVALID_INDEX_CHARACTERS for character in index):
+                return action_result.set_status(phantom.APP_ERROR, f"Invalid Elasticsearch index name: {index}")
+
+        index = urllib.quote(",".join(indexes), safe=",*")
         endpoint = ELASTICSEARCH_QUERY_SEARCH_WITH_INDEX.format(index)
 
         routing = param.get(ELASTICSEARCH_JSON_ROUTING)
