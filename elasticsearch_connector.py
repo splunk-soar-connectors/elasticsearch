@@ -405,6 +405,7 @@ class ElasticsearchConnector(BaseConnector):
 
         action_results = self.get_action_results()
         parser = config.get("ingest_parser")
+        save_failures = 0
         for action_result in action_results:
             for data in action_result.get_data():
                 saved_stdout = sys.stdout
@@ -434,7 +435,13 @@ class ElasticsearchConnector(BaseConnector):
                     ret_dict_list = ret_dict_list[:container_count]
 
                 for ret_dict in ret_dict_list:
-                    self._save_container(ret_dict)
+                    save_status, save_message, _ = self._save_container(ret_dict)
+                    if phantom.is_fail(save_status):
+                        save_failures += 1
+                        self.error_print(f"Failed to save Elasticsearch container: {save_message}")
+
+        if save_failures:
+            return action_result.set_status(phantom.APP_ERROR, f"Failed to persist {save_failures} Elasticsearch record(s)")
 
         return action_result.set_status(phantom.APP_SUCCESS)
 
