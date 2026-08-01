@@ -57,12 +57,6 @@
             "description": "Ingestion query",
             "data_type": "string",
             "order": 6
-        },
-        "ingest_parser": {
-            "description": "Custom Elasticsearch parser",
-            "data_type": "file",
-            "extensions": ".py",
-            "order": 7
         }
     },
     "actions": [

@@ -39,7 +39,6 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **ingest_index** | optional | string | Ingestion index |
 **ingest_routing** | optional | string | Ingestion routing |
 **ingest_query** | optional | string | Ingestion query |
-**ingest_parser** | optional | file | Custom Elasticsearch parser |
 
 ### Supported Actions
 
