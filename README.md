@@ -39,7 +39,6 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **ingest_index** | optional | string | Ingestion index |
 **ingest_routing** | optional | string | Ingestion routing |
 **ingest_query** | optional | string | Ingestion query |
-**ingest_parser** | optional | file | Custom Elasticsearch parser |
 
 ### Supported Actions
 
@@ -140,7 +139,7 @@ Run a query in elasticsearch and ingest the results
 Type: **ingest** <br>
 Read only: **True**
 
-This will run a query in elasticsearch using the <b>index</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Splunk SOAR in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. If a custom parsing script is not provided, the <a href="/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py">default parsing script</a> is used:<br><pre class="shell"><code>def ingest_parser(data):
+This will run a query in elasticsearch using the <b>index</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Splunk SOAR in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. The bundled <a href="/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py">parsing script</a> is always used:<br><pre class="shell"><code>def ingest_parser(data):
 results = []
 if not isinstance(data, dict):
 return results
