@@ -16,6 +16,7 @@
 
 import json
 import sys
+import types
 import urllib.parse as urllib
 
 import phantom.app as phantom
@@ -68,12 +69,6 @@ class ElasticsearchConnector(BaseConnector):
         """Called once for every action, all member initializations occur here"""
 
         config = self.get_config()
-
-        if config.get("ingest_parser"):
-            return self.set_status(
-                phantom.APP_ERROR,
-                "Custom ingestion parsers are no longer supported. Remove the legacy ingest_parser asset value before running this connector.",
-            )
 
         # Get the Base URL from the asset config and so some cleanup
         self._base_url = config[ELASTICSEARCH_JSON_DEVICE_URL].rstrip("/")
@@ -270,7 +265,7 @@ class ElasticsearchConnector(BaseConnector):
         self.save_progress(ELASTICSEARCH_MESSAGE_CLUSTER_HEALTH)
 
         # Make the rest endpoint call
-        ret_val, response = self._make_rest_call(ELASTICSEARCH_CLUSTER_HEALTH, action_result)
+        ret_val, _response = self._make_rest_call(ELASTICSEARCH_CLUSTER_HEALTH, action_result)
 
         # Process errors
         if phantom.is_fail(ret_val):
@@ -405,19 +400,34 @@ class ElasticsearchConnector(BaseConnector):
             return ret_val
 
         action_results = self.get_action_results()
+        parser = config.get("ingest_parser")
         save_failures = 0
         for action_result in action_results:
             for data in action_result.get_data():
                 saved_stdout = sys.stdout
                 debug_out = PhantomDebugWriter(self)
-                try:
-                    sys.stdout = debug_out
-                    ret_dict_list = elasticsearch_parser.ingest_parser(data)
-                except Exception as e:
-                    error_message = self._get_error_message_from_exception(e)
-                    return action_result.set_status(phantom.APP_ERROR, f"Unable to run bundled ingest parser: {error_message}")
-                finally:
-                    sys.stdout = saved_stdout
+                if parser:
+                    parser_name = config["ingest_parser__filename"]
+                    self.save_progress(f"Using specified parser: {parser_name}")
+                    ingest_parser = types.ModuleType("custom_parser")
+                    try:
+                        sys.stdout = debug_out
+                        exec(parser, ingest_parser.__dict__)  # nosec B102: asset field requires SOAR Edit Code permission
+                        ret_dict_list = ingest_parser.ingest_parser(data)  # pylint: disable=no-member
+                    except Exception as e:
+                        error_message = self._get_error_message_from_exception(e)
+                        return action_result.set_status(phantom.APP_ERROR, f"Unable to execute ingest parser: {error_message}")
+                    finally:
+                        sys.stdout = saved_stdout
+                else:
+                    try:
+                        sys.stdout = debug_out
+                        ret_dict_list = elasticsearch_parser.ingest_parser(data)
+                    except Exception as e:
+                        error_message = self._get_error_message_from_exception(e)
+                        return action_result.set_status(phantom.APP_ERROR, f"Unable to run bundled ingest parser: {error_message}")
+                    finally:
+                        sys.stdout = saved_stdout
 
                 if not ret_dict_list:
                     continue

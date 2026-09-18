@@ -4,7 +4,7 @@ Publisher: Splunk <br>
 Connector Version: 4.0.0 <br>
 Product Vendor: Elastic <br>
 Product Name: Elasticsearch <br>
-Minimum Product Version: 5.4.0
+Minimum Product Version: 8.9.0
 
 This app integrates with an Elasticsearch installation to implement ingestion and investigative actions
 
@@ -39,6 +39,7 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 **ingest_index** | optional | string | Ingestion index |
 **ingest_routing** | optional | string | Ingestion routing |
 **ingest_query** | optional | string | Ingestion query |
+**ingest_parser** | optional | python_script | Custom Elasticsearch parser |
 
 ### Supported Actions
 

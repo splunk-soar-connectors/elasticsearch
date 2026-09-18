@@ -11,7 +11,7 @@
     "product_name": "Elasticsearch",
     "product_vendor": "Elastic",
     "product_version_regex": ".*",
-    "min_phantom_version": "5.4.0",
+    "min_phantom_version": "8.9.0",
     "python_version": "3.9, 3.13",
     "fips_compliant": true,
     "logo": "logo_elastic.svg",
@@ -57,6 +57,12 @@
             "description": "Ingestion query",
             "data_type": "string",
             "order": 6
+        },
+        "ingest_parser": {
+            "description": "Custom Elasticsearch parser",
+            "data_type": "python_script",
+            "extensions": ".py",
+            "order": 7
         }
     },
     "actions": [
