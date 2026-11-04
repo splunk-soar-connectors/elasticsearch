@@ -15,12 +15,16 @@ import ast
 from pathlib import Path
 
 
-CONNECTOR_SOURCE = Path(__file__).parents[1] / "elasticsearch_connector.py"
+CONNECTOR_SOURCE = Path(__file__).parents[1] / "src" / "app.py"
 
 
 def test_connector_has_no_dynamic_execution_primitive():
     tree = ast.parse(CONNECTOR_SOURCE.read_text())
-    called_names = {node.func.id for node in ast.walk(tree) if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)}
+    called_names = {
+        node.func.id
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+    }
 
     assert "exec" not in called_names
     assert "eval" not in called_names
@@ -30,5 +34,5 @@ def test_connector_has_no_dynamic_execution_primitive():
 def test_legacy_parser_values_are_rejected_during_initialization():
     source = CONNECTOR_SOURCE.read_text()
 
-    assert 'config.get("ingest_parser")' in source
-    assert "Custom ingestion parsers are no longer supported" in source
+    assert 'values.get("ingest_parser")' in source
+    assert "raise ValueError(ELASTICSEARCH_ERROR_LEGACY_PARSER)" in source
