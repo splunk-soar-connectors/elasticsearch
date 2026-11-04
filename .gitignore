@@ -1,1 +1,8 @@
 *.pyc
+__pycache__/
+.venv/
+.pytest_cache/
+.ruff_cache/
+dist/
+*.tgz
+.coverage
