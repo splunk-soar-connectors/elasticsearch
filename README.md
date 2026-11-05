@@ -8,6 +8,10 @@ Minimum Product Version: 7.0.0
 
 This app integrates with an Elasticsearch installation to implement ingestion and investigative actions
 
+**Requirements**\
+This connector uses Splunk SOAR SDK 7.1.2 and requires Splunk SOAR 7.0.0 or later with
+Python 3.13 or 3.15.
+
 Elasticsearch installations can be configured to allow REST API access without any type of
 authentication. The app therefore marks **username** and **password** as optional parameters. If
 specified, the app will use these for generating the basic authentication header for various
@@ -33,7 +37,7 @@ This table lists the configuration variables required to operate Elasticsearch. 
 VARIABLE | REQUIRED | TYPE | DESCRIPTION
 -------- | -------- | ---- | -----------
 **url** | required | string | Device URL including the port, e.g. https://myelastic.enterprise.com:9200 |
-**verify_server_cert** | required | boolean | Verify server certificate |
+**verify_server_cert** | optional | boolean | Verify server certificate |
 **username** | optional | string | Username |
 **password** | optional | password | Password |
 **ingest_index** | optional | string | Ingestion index |

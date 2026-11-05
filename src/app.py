@@ -41,7 +41,7 @@ class Asset(BaseAsset):
         required=True,
     )
     verify_server_cert: bool = AssetField(
-        description="Verify server certificate", default=True
+        description="Verify server certificate", default=True, required=False
     )
     username: str | None = AssetField(description="Username", default=None)
     password: str | None = AssetField(
