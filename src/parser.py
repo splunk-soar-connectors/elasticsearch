@@ -1,4 +1,3 @@
-# File: elasticsearch_parser.py
 #
 # Copyright (c) 2016-2026 Splunk Inc.
 #
@@ -12,6 +11,9 @@
 # the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
 # either express or implied. See the License for the specific language governing permissions
 # and limitations under the License.
+from soar_sdk.logging import getLogger
+
+
 def ingest_parser(data):
     results = []
     if not isinstance(data, dict):
@@ -23,7 +25,7 @@ def ingest_parser(data):
         artifacts = []
 
         # anything printed to stdout will be added to the phantom debug logs
-        print("Found hit {}. Building container".format(hit["_id"]))
+        getLogger().debug("Found hit %s. Building container", hit["_id"])
 
         container["run_automation"] = False
         container["source_data_identifier"] = hit["_id"]

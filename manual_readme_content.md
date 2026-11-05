@@ -1,3 +1,7 @@
+**Requirements**\
+This connector uses Splunk SOAR SDK 7.1.2 and requires Splunk SOAR 7.0.0 or later with
+Python 3.13 or 3.15.
+
 Elasticsearch installations can be configured to allow REST API access without any type of
 authentication. The app therefore marks **username** and **password** as optional parameters. If
 specified, the app will use these for generating the basic authentication header for various

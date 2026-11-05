@@ -4,9 +4,13 @@ Publisher: Splunk <br>
 Connector Version: 4.0.0 <br>
 Product Vendor: Elastic <br>
 Product Name: Elasticsearch <br>
-Minimum Product Version: 5.4.0
+Minimum Product Version: 7.0.0
 
 This app integrates with an Elasticsearch installation to implement ingestion and investigative actions
+
+**Requirements**\
+This connector uses Splunk SOAR SDK 7.1.2 and requires Splunk SOAR 7.0.0 or later with
+Python 3.13 or 3.15.
 
 Elasticsearch installations can be configured to allow REST API access without any type of
 authentication. The app therefore marks **username** and **password** as optional parameters. If
@@ -42,17 +46,22 @@ VARIABLE | REQUIRED | TYPE | DESCRIPTION
 
 ### Supported Actions
 
-[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity. This action logs into the device to check the connection and credentials <br>
-[get config](#action-get-config) - Returns the list of indices and their information currently configured on the ElasticSearch instance <br>
-[run query](#action-run-query) - Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string <br>
-[on poll](#action-on-poll) - Run a query in elasticsearch and ingest the results
+[test connectivity](#action-test-connectivity) - Validate the asset configuration for connectivity. <br>
+[on poll](#action-on-poll) - Run the configured query and ingest its hits using the bundled parser.
+
+The query controls time ranges and pagination, as in the legacy connector. <br>
+[get config](#action-get-config) - Returns the list of indices and their information currently configured on the ElasticSearch instance. <br>
+[make request](#action-make-request) - Make an authenticated request relative to the configured Elasticsearch URL. <br>
+[run query](#action-run-query) - Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string.
 
 ## action: 'test connectivity'
 
-Validate the asset configuration for connectivity. This action logs into the device to check the connection and credentials
+Validate the asset configuration for connectivity.
 
 Type: **test** <br>
 Read only: **True**
+
+Basic test for app.
 
 #### Action Parameters
 
@@ -60,11 +69,41 @@ No parameters are required for this action
 
 #### Action Output
 
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'on poll'
+
+Run the configured query and ingest its hits using the bundled parser.
+
+The query controls time ranges and pagination, as in the legacy connector.
+
+Type: **ingest** <br>
+Read only: **True**
+
+Callback action for the on_poll ingest functionality
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**start_time** | optional | Start of time range, in epoch time (milliseconds). | numeric | |
+**end_time** | optional | End of time range, in epoch time (milliseconds). | numeric | |
+**container_count** | optional | Maximum number of container records to query for. | numeric | |
+**artifact_count** | optional | Maximum number of artifact records to query for. | numeric | |
+**container_id** | optional | Comma-separated list of container IDs to limit the ingestion to. | string | |
+
+#### Action Output
+
 No Output
 
 ## action: 'get config'
 
-Returns the list of indices and their information currently configured on the ElasticSearch instance
+Returns the list of indices and their information currently configured on the ElasticSearch instance.
 
 Type: **investigate** <br>
 Read only: **True**
@@ -77,20 +116,59 @@ No parameters are required for this action
 
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.status | string | | success failed |
-action_result.data.\*.document_count | string | | 1 |
-action_result.data.\*.health | string | | green red yellow |
-action_result.data.\*.index | string | `elasticsearch index` | test_index |
-action_result.data.\*.status | string | | open |
-action_result.data.\*.store_size | string | | 12mb 12b |
-action_result.summary.total_indices | numeric | | 20 |
-action_result.message | string | | Total indices: 20 |
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.data.\*.index | string | `elasticsearch index` | |
+action_result.data.\*.health | string | | |
+action_result.data.\*.status | string | | |
+action_result.data.\*.document_count | string | | |
+action_result.data.\*.store_size | string | | |
+action_result.summary.total_indices | numeric | | |
+summary.total_objects | numeric | | 1 |
+summary.total_objects_successful | numeric | | 1 |
+
+## action: 'make request'
+
+Make an authenticated request relative to the configured Elasticsearch URL.
+
+Type: **generic** <br>
+Read only: **False**
+
+'make request' action for the app. Used to handle arbitrary HTTP requests with the app's asset
+
+#### Action Parameters
+
+PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
+--------- | -------- | ----------- | ---- | --------
+**http_method** | required | The HTTP method to use for the request. | string | |
+**endpoint** | required | The endpoint to send the request to. | string | |
+**headers** | optional | The headers to send with the request (JSON object). An example is {'Content-Type': 'application/json'} | string | |
+**query_parameters** | optional | Parameters to append to the URL (JSON object or query string). An example is ?key=value&key2=value2 | string | |
+**body** | optional | The body to send with the request (JSON object). An example is {'key': 'value', 'key2': 'value2'} | string | |
+**timeout** | optional | The timeout for the request in seconds. | numeric | |
+**verify_ssl** | optional | Whether to verify the SSL certificate. Default is True. | boolean | |
+
+#### Action Output
+
+DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
+--------- | ---- | -------- | --------------
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.http_method | string | | |
+action_result.parameter.endpoint | string | | |
+action_result.parameter.headers | string | | |
+action_result.parameter.query_parameters | string | | |
+action_result.parameter.body | string | | |
+action_result.parameter.timeout | numeric | | |
+action_result.parameter.verify_ssl | boolean | | |
+action_result.data.\*.status_code | numeric | | 200 404 500 |
+action_result.data.\*.response_body | string | | {"key": "value"} |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
 
 ## action: 'run query'
 
-Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string
+Run a search query on the Elasticsearch installation. Please escape any quotes that are part of the query string.
 
 Type: **investigate** <br>
 Read only: **True**
@@ -109,88 +187,28 @@ PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
 
 DATA PATH | TYPE | CONTAINS | EXAMPLE VALUES
 --------- | ---- | -------- | --------------
-action_result.status | string | | success failed |
-action_result.parameter.index | string | `elasticsearch index` | test_index |
-action_result.parameter.query | string | `elasticsearch query` | { "query": {"match_all": {}}} |
-action_result.parameter.routing | string | | route1 |
-action_result.data.\*.\_shards.failed | numeric | | 0 |
-action_result.data.\*.\_shards.skipped | numeric | | 0 |
-action_result.data.\*.\_shards.successful | numeric | | 0 |
-action_result.data.\*.\_shards.total | numeric | | 1 |
-action_result.data.\*.hits.hits.\*.\_id | string | | LOdkiYNBlA_PxVqybtLP |
-action_result.data.\*.hits.hits.\*.\_index | string | | test_index |
-action_result.data.\*.hits.hits.\*.\_score | numeric | | 1 |
+action_result.status | string | | success failure |
+action_result.message | string | | |
+action_result.parameter.index | string | `elasticsearch index` | |
+action_result.parameter.routing | string | | |
+action_result.parameter.query | string | `elasticsearch query` | |
+action_result.data.\*.\_shards.failed | numeric | | |
+action_result.data.\*.\_shards.skipped | numeric | | |
+action_result.data.\*.\_shards.successful | numeric | | |
+action_result.data.\*.\_shards.total | numeric | | |
+action_result.data.\*.hits.hits.\*.\_id | string | | |
+action_result.data.\*.hits.hits.\*.\_index | string | | |
+action_result.data.\*.hits.hits.\*.\_score | numeric | | |
 action_result.data.\*.hits.hits.\*.\_source | string | | |
 action_result.data.\*.hits.hits.\*.fields | numeric | | |
-action_result.data.\*.hits.max_score | numeric | | 1 |
-action_result.data.\*.hits.total.relation | string | | eq |
-action_result.data.\*.hits.total.value | numeric | | 2 |
-action_result.data.\*.took | numeric | | 1 |
+action_result.data.\*.hits.max_score | numeric | | |
+action_result.data.\*.hits.total.relation | string | | |
+action_result.data.\*.hits.total.value | numeric | | |
+action_result.data.\*.took | numeric | | |
 action_result.summary.timed_out | boolean | | True False |
-action_result.summary.total_hits | numeric | | 40 |
-action_result.message | string | | Total hits: 40, Timed out: False |
+action_result.summary.total_hits | numeric | | |
 summary.total_objects | numeric | | 1 |
 summary.total_objects_successful | numeric | | 1 |
-
-## action: 'on poll'
-
-Run a query in elasticsearch and ingest the results
-
-Type: **ingest** <br>
-Read only: **True**
-
-This will run a query in elasticsearch using the <b>index</b>, <b>routing</b>, and <b>query</b> configured in the app settings and ingest the results. The <b>query</b> is not modified by Splunk SOAR in any way before being requested in elasticsearch. This means that the <b>query</b> must account for relative time between ingestion runs, query limits, and page sizes.<br><br>The <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-body.html">raw JSON response</a> from elasticsearch is passed to a parser script which returns a list of containers and artifacts. The bundled <a href="/app_resource/elasticsearch_fde8b9da-d38c-45c2-832a-1e1c543ed287/elasticsearch_parser.py">parsing script</a> is always used:<br><pre class="shell"><code>def ingest_parser(data):
-results = []
-if not isinstance(data, dict):
-return results
-
-```
-hits = data.get('hits', {}).get('hits', [])
-for hit in hits:
-    container = {}
-    artifacts = []
-
-    # anything printed to stdout will be added to the Splunk SOAR debug logs
-    print('Found hit {}. Building container'.format(hit['_id']))
-
-    container['run_automation'] = False
-    container['source_data_identifier'] = hit['_id']
-    container['name'] = 'Elasticsearch: {} {} {}'.format(hit['_index'],
-                                                         ,
-                                                         hit['_id'])
-
-    artifacts.append({
-        # always True since there is only one
-        'run_automation': True,
-        'label': 'event',
-        'name': 'elasticsearch event',
-        'cef': hit.get('_source'),
-        'source_data_identifier': hit['_id']
-    })
-
-    results.append({
-        'container': container,
-        'artifacts': artifacts
-    })
-
-return results
-```
-
-</code></pre>.
-
-#### Action Parameters
-
-PARAMETER | REQUIRED | DESCRIPTION | TYPE | CONTAINS
---------- | -------- | ----------- | ---- | --------
-**container_id** | optional | Limit ingestion to these container IDs | string | |
-**start_time** | optional | Start of time range in epoch time (default: 10 days ago) | numeric | |
-**end_time** | optional | End of time range in epoch time (default: now) | numeric | |
-**container_count** | optional | Maximum number of containers to create | numeric | |
-**artifact_count** | optional | Maximum number of artifacts to create per container | numeric | |
-
-#### Action Output
-
-No Output
 
 ______________________________________________________________________
 
