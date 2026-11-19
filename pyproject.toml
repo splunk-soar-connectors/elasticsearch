@@ -1,6 +1,6 @@
 [project]
 name = "elasticsearch"
-version = "4.0.0"
+version = "5.0.0"
 description = "This app integrates with an Elasticsearch installation to implement ingestion and investigative actions"
 license = "Copyright (c) 2016-2026 Splunk Inc."
 requires-python = ">=3.13, <3.16, !=3.14.*"

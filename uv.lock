@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.13, !=3.14.*, <3.16"
 resolution-markers = [
     "python_full_version >= '3.15' and platform_machine == 'x86_64' and sys_platform == 'linux'",
@@ -381,7 +381,7 @@ wheels = [
 
 [[package]]
 name = "elasticsearch"
-version = "4.0.0"
+version = "5.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "beautifulsoup4" },
